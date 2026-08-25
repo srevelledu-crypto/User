@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>12PHY External Assessment Tutor</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>12PHY EA Prep</h1>
+      <p class="subtitle">QCE Physics Units 3 &amp; 4 — External Assessment</p>
+
+      <div id="access-gate" class="access-gate">
+        <label for="access-code">Class access code</label>
+        <input id="access-code" type="password" placeholder="Enter code" autocomplete="off" />
+        <button id="access-save">Save</button>
+      </div>
+
+      <div class="field-group">
+        <label for="mode-select">Mode</label>
+        <select id="mode-select">
+          <option value="general">General help</option>
+          <option value="concept">Concept Q&amp;A</option>
+          <option value="practice">Practice exam questions</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label for="topic-select">Focus topic</label>
+        <select id="topic-select">
+          <option value="">Any topic</option>
+        </select>
+      </div>
+
+      <button id="formula-btn" class="secondary-btn">Formula sheet</button>
+      <button id="reset-btn" class="secondary-btn">New conversation</button>
+
+      <div class="disclaimer">
+        Study support tool — not an official QCAA resource. Always check the
+        current QCAA syllabus and formula &amp; data booklet.
+      </div>
+    </aside>
+
+    <main class="chat-panel">
+      <div id="messages" class="messages">
+        <div class="message assistant">
+          <div class="bubble">
+            Hi! I'm here to help you revise for your QCE Physics Unit 3 &amp; 4
+            external assessment. Pick a mode and topic on the left, then ask
+            me anything — or ask for a practice question to try.
+          </div>
+        </div>
+      </div>
+
+      <form id="chat-form" class="chat-form">
+        <textarea
+          id="chat-input"
+          rows="2"
+          placeholder="Ask a physics question, or ask for a practice question…"
+        ></textarea>
+        <button type="submit" id="send-btn">Send</button>
+      </form>
+    </main>
+  </div>
+
+  <div id="formula-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Formula sheet</h2>
+        <button id="formula-close" class="secondary-btn">Close</button>
+      </div>
+      <div id="formula-list" class="formula-list"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

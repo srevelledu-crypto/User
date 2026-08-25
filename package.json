@@ -1,0 +1,9 @@
+{
+  "name": "12phy-ea-tutor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI tutor web app for QCE Year 12 Physics (12PHY) Unit 3 & 4 external assessment preparation.",
+  "engines": {
+    "node": ">=18"
+  }
+}

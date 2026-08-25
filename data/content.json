@@ -1,0 +1,83 @@
+{
+  "topics": [
+    {
+      "unit": "Unit 3",
+      "topic": "Gravity and motion",
+      "subtopics": [
+        "Projectile motion (horizontal and vertical components, range, time of flight, max height)",
+        "Newton's law of universal gravitation",
+        "Gravitational fields and field strength",
+        "Orbital motion (circular orbits, orbital velocity and period)",
+        "Kepler's third law",
+        "Gravitational potential energy and escape velocity",
+        "Types of orbits (low Earth, geostationary)"
+      ]
+    },
+    {
+      "unit": "Unit 3",
+      "topic": "Electromagnetism",
+      "subtopics": [
+        "Electric fields, Coulomb's law, field strength and potential",
+        "Motion of charged particles in uniform electric fields",
+        "Capacitors and capacitance",
+        "Magnetic fields and field patterns",
+        "Force on a current-carrying conductor (F = BIL)",
+        "Force on a moving charge (F = qvB), the motor effect",
+        "Electromagnetic induction, Faraday's and Lenz's laws",
+        "EMF generation, AC generators and transformers"
+      ]
+    },
+    {
+      "unit": "Unit 4",
+      "topic": "Special relativity",
+      "subtopics": [
+        "Einstein's postulates of special relativity",
+        "Evidence for relativity (Michelson-Morley experiment, muon decay)",
+        "Time dilation",
+        "Length contraction",
+        "Relativistic momentum",
+        "Mass-energy equivalence (E = mc^2)",
+        "Simultaneity and reference frames"
+      ]
+    },
+    {
+      "unit": "Unit 4",
+      "topic": "Quantum theory",
+      "subtopics": [
+        "Wave and particle models of light",
+        "The photoelectric effect and work function",
+        "Einstein's photoelectric equation",
+        "Wave-particle duality and de Broglie wavelength",
+        "Atomic emission and absorption spectra, Bohr model",
+        "Quantised energy, Planck's equation (E = hf)",
+        "Heisenberg uncertainty principle (qualitative)"
+      ]
+    }
+  ],
+  "formulas": [
+    { "section": "Gravity and motion", "name": "Projectile range", "formula": "R = (v^2 sin(2θ)) / g" },
+    { "section": "Gravity and motion", "name": "Time of flight", "formula": "t = (2 v sinθ) / g" },
+    { "section": "Gravity and motion", "name": "Newton's law of gravitation", "formula": "F = G m1 m2 / r^2" },
+    { "section": "Gravity and motion", "name": "Gravitational field strength", "formula": "g = G M / r^2" },
+    { "section": "Gravity and motion", "name": "Orbital velocity", "formula": "v = sqrt(G M / r)" },
+    { "section": "Gravity and motion", "name": "Orbital period", "formula": "T^2 = (4π^2 / G M) r^3" },
+    { "section": "Gravity and motion", "name": "Gravitational potential energy", "formula": "U = -G m1 m2 / r" },
+    { "section": "Gravity and motion", "name": "Escape velocity", "formula": "v_esc = sqrt(2 G M / r)" },
+    { "section": "Electromagnetism", "name": "Coulomb's law", "formula": "F = k q1 q2 / r^2" },
+    { "section": "Electromagnetism", "name": "Electric field strength", "formula": "E = F / q = V / d" },
+    { "section": "Electromagnetism", "name": "Capacitance", "formula": "C = Q / V" },
+    { "section": "Electromagnetism", "name": "Energy stored in a capacitor", "formula": "U = 1/2 Q V = 1/2 C V^2" },
+    { "section": "Electromagnetism", "name": "Force on a current-carrying conductor", "formula": "F = B I L sinθ" },
+    { "section": "Electromagnetism", "name": "Force on a moving charge", "formula": "F = q v B sinθ" },
+    { "section": "Electromagnetism", "name": "Induced EMF (Faraday's law)", "formula": "ε = -N (ΔΦ / Δt)" },
+    { "section": "Electromagnetism", "name": "Magnetic flux", "formula": "Φ = B A cosθ" },
+    { "section": "Electromagnetism", "name": "Transformer equation", "formula": "V_p / V_s = N_p / N_s" },
+    { "section": "Special relativity", "name": "Time dilation", "formula": "t = t0 / sqrt(1 - v^2/c^2)" },
+    { "section": "Special relativity", "name": "Length contraction", "formula": "L = L0 sqrt(1 - v^2/c^2)" },
+    { "section": "Special relativity", "name": "Relativistic momentum", "formula": "p = m v / sqrt(1 - v^2/c^2)" },
+    { "section": "Special relativity", "name": "Mass-energy equivalence", "formula": "E = m c^2" },
+    { "section": "Quantum theory", "name": "Photon energy", "formula": "E = h f = h c / λ" },
+    { "section": "Quantum theory", "name": "Photoelectric equation", "formula": "E_k(max) = h f - ϕ" },
+    { "section": "Quantum theory", "name": "de Broglie wavelength", "formula": "λ = h / p = h / (m v)" }
+  ]
+}
