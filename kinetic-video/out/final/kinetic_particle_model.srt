@@ -1,0 +1,223 @@
+1
+00:00:00,800 --> 00:00:03,520
+Here's a balloon, blown up at room temperature.
+
+2
+00:00:03,820 --> 00:00:07,934
+Put it in the freezer for an hour, and it comes out noticeably smaller.
+
+3
+00:00:08,234 --> 00:00:11,161
+Leave it on the bench, and it slowly puffs back up.
+
+4
+00:00:11,461 --> 00:00:13,462
+No air got in or out.
+
+5
+00:00:13,512 --> 00:00:15,333
+Same balloon, same air.
+
+6
+00:00:15,383 --> 00:00:17,518
+So what's going on inside?
+
+7
+00:00:19,268 --> 00:00:24,120
+Everything around you, solids, liquids and gases, is made of tiny particles.
+
+8
+00:00:24,420 --> 00:00:27,226
+We'll draw each particle as a simple circle.
+
+9
+00:00:27,526 --> 00:00:29,697
+And these particles are never still.
+
+10
+00:00:29,747 --> 00:00:32,161
+They're in constant, random motion.
+
+11
+00:00:32,461 --> 00:00:35,928
+Follow just one, and its path is a jumble of zigzags.
+
+12
+00:00:35,978 --> 00:00:39,525
+It changes direction every time it bumps into a neighbour.
+
+13
+00:00:41,275 --> 00:00:44,605
+The particle model explains the three states of matter.
+
+14
+00:00:44,905 --> 00:00:48,390
+In a solid, particles are packed tightly in fixed positions.
+
+15
+00:00:48,690 --> 00:00:50,517
+But they're not stationary.
+
+16
+00:00:50,567 --> 00:00:53,377
+Each one vibrates on the spot, all the time.
+
+17
+00:00:53,677 --> 00:00:58,418
+In a liquid, particles are still close together, but they can slide past each other.
+
+18
+00:00:58,468 --> 00:01:00,266
+That's why liquids flow.
+
+19
+00:01:00,566 --> 00:01:03,029
+In a gas, particles are far apart.
+
+20
+00:01:03,079 --> 00:01:06,529
+They move fast, in straight lines, until they hit something.
+
+21
+00:01:06,829 --> 00:01:09,250
+And the space between gas particles?
+
+22
+00:01:09,300 --> 00:01:10,496
+It's empty.
+
+23
+00:01:10,546 --> 00:01:11,672
+Not air.
+
+24
+00:01:11,722 --> 00:01:13,119
+Nothing at all.
+
+25
+00:01:13,169 --> 00:01:14,987
+The particles are the air.
+
+26
+00:01:16,737 --> 00:01:18,453
+Now let's heat a gas.
+
+27
+00:01:18,753 --> 00:01:22,134
+As the temperature rises, the particles move faster.
+
+28
+00:01:22,434 --> 00:01:25,442
+This graph shows how many particles have each speed.
+
+29
+00:01:25,492 --> 00:01:28,576
+As we heat the gas, the whole graph shifts to the right.
+
+30
+00:01:28,876 --> 00:01:33,293
+Temperature is a measure of the average kinetic energy of the particles.
+
+31
+00:01:33,343 --> 00:01:35,634
+Hotter means faster, on average.
+
+32
+00:01:35,934 --> 00:01:39,656
+Notice what doesn't change: the size of each particle.
+
+33
+00:01:39,706 --> 00:01:42,080
+Particles don't expand when heated.
+
+34
+00:01:42,130 --> 00:01:43,690
+They just speed up.
+
+35
+00:01:45,440 --> 00:01:48,897
+Gas particles keep crashing into the walls of their container.
+
+36
+00:01:48,947 --> 00:01:51,427
+Watch the walls light up with every hit.
+
+37
+00:01:51,727 --> 00:01:53,779
+Each hit is a tiny push.
+
+38
+00:01:53,829 --> 00:01:57,126
+Countless pushes every second add up to gas pressure.
+
+39
+00:01:57,426 --> 00:02:01,276
+Heat the gas, and the particles hit the walls more often, and harder.
+
+40
+00:02:01,576 --> 00:02:04,316
+More hits, and harder hits, mean higher pressure.
+
+41
+00:02:06,066 --> 00:02:07,856
+So, back to the balloon.
+
+42
+00:02:08,156 --> 00:02:11,371
+In the freezer, the air particles inside slow down.
+
+43
+00:02:11,421 --> 00:02:14,056
+They hit the rubber less often, and less hard.
+
+44
+00:02:14,356 --> 00:02:20,742
+The push from inside drops below the push from the air outside, so the balloon shrinks until the pushes balance.
+
+45
+00:02:21,042 --> 00:02:22,952
+Same number of particles.
+
+46
+00:02:23,002 --> 00:02:24,880
+Same size particles.
+
+47
+00:02:24,930 --> 00:02:26,285
+Just slower.
+
+48
+00:02:26,585 --> 00:02:30,747
+Warm it up, the particles speed up again, and the balloon puffs back out.
+
+49
+00:02:32,497 --> 00:02:33,842
+Let's recap.
+
+50
+00:02:34,142 --> 00:02:35,202
+One.
+
+51
+00:02:35,252 --> 00:02:40,266
+All matter is made of particles in constant, random motion, even in solids.
+
+52
+00:02:40,566 --> 00:02:41,350
+Two.
+
+53
+00:02:41,400 --> 00:02:46,564
+Solids, liquids and gases differ in how close the particles are, and how they move.
+
+54
+00:02:46,864 --> 00:02:47,692
+Three.
+
+55
+00:02:47,742 --> 00:02:51,592
+Temperature measures the average kinetic energy of the particles.
+
+56
+00:02:51,642 --> 00:02:54,094
+Heating makes them faster, not bigger.
