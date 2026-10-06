@@ -78,3 +78,9 @@ Then open the printed local URL.
 Edit `data/content.json` to adjust the topic list or formula sheet — both the
 sidebar UI and the AI's system prompt (built in `api/chat.js`) read from this
 one file, so there's no need to edit the prompt separately for content changes.
+
+## Mole Explorer (chemistry simulator)
+
+`mole-simulator/index.html` is a standalone, no-dependency interactive for
+teaching the mole concept. Open it directly in a browser; it is independent
+of the tutor app above. Teacher notes are at the bottom of the page.

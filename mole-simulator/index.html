@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Mole Explorer</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface-2: #eef2fa;
+      --text: #1b2333;
+      --muted: #5a6478;
+      --border: #d8deea;
+      --accent: #2f6fed;
+      --accent-text: #ffffff;
+      --accent-soft: #e2ebff;
+      --good: #187a49;
+      --good-soft: #e0f4e8;
+      --bad: #b83232;
+      --bad-soft: #fbe5e5;
+      --warn: #8a5a00;
+      --warn-soft: #fff1d6;
+      --shadow: 0 4px 14px rgba(20, 30, 60, 0.08);
+      --bond: #555d6b;
+      --balance: #6b7385;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #11151d;
+        --surface: #1a202b;
+        --surface-2: #232b39;
+        --text: #e6eaf2;
+        --muted: #a2abbd;
+        --border: #313a4b;
+        --accent: #6f9bff;
+        --accent-text: #0d1424;
+        --accent-soft: #23314f;
+        --good: #5fd39a;
+        --good-soft: #173527;
+        --bad: #ff8a8a;
+        --bad-soft: #3d1d1f;
+        --warn: #ffc864;
+        --warn-soft: #3a2e14;
+        --shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        --bond: #b4bccb;
+        --balance: #9aa3b5;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #11151d;
+      --surface: #1a202b;
+      --surface-2: #232b39;
+      --text: #e6eaf2;
+      --muted: #a2abbd;
+      --border: #313a4b;
+      --accent: #6f9bff;
+      --accent-text: #0d1424;
+      --accent-soft: #23314f;
+      --good: #5fd39a;
+      --good-soft: #173527;
+      --bad: #ff8a8a;
+      --bad-soft: #3d1d1f;
+      --warn: #ffc864;
+      --warn-soft: #3a2e14;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      --bond: #b4bccb;
+      --balance: #9aa3b5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    .wrap { max-width: 1100px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 14px; }
+    h1 { margin: 0 0 4px; font-size: clamp(1.5rem, 4vw, 2.1rem); }
+    .subtitle { color: var(--muted); margin: 0; }
+
+    /* ---------- Station navigation ---------- */
+    nav.stepper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin: 14px 0;
+    }
+    nav.stepper button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    nav.stepper button .num {
+      display: inline-flex;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      align-items: center; justify-content: center;
+      background: var(--surface-2);
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    nav.stepper button.visited .num { background: var(--good-soft); color: var(--good); }
+    nav.stepper button.current { border-color: var(--accent); background: var(--accent-soft); }
+    nav.stepper button.current .num { background: var(--accent); color: var(--accent-text); }
+
+    /* ---------- Cards & layout ---------- */
+    .station { display: none; }
+    .station.active { display: block; animation: fade 0.25s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .station-head { margin-bottom: 10px; }
+    .station-head h2 { margin: 0; font-size: 1.35rem; }
+    .station-head p { margin: 4px 0 0; color: var(--muted); }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid > * { min-width: 0; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 8px; font-size: 1.05rem; }
+
+    .key-idea {
+      border-left: 5px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 14px;
+    }
+    .key-idea strong:first-child { display: block; margin-bottom: 2px; }
+
+    .think {
+      border-left: 5px solid var(--warn);
+      background: var(--warn-soft);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 0.9rem; }
+    .big-number { font-size: clamp(1.4rem, 5vw, 2.1rem); font-weight: 700; letter-spacing: 0.5px; }
+
+    label { font-weight: 600; }
+    select, input[type="text"], input[type="number"] {
+      font: inherit;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      max-width: 100%;
+    }
+    input[type="text"], input[type="number"] { width: 100%; }
+
+    button.btn {
+      font: inherit;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+    }
+    button.btn:hover { border-color: var(--accent); }
+    button.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+    button.btn.chosen { background: var(--accent-soft); border-color: var(--accent); }
+    button.btn:disabled { opacity: 0.5; cursor: default; }
+    button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+
+    .feedback { margin-top: 10px; padding: 10px 12px; border-radius: 8px; display: none; }
+    .feedback.show { display: block; }
+    .feedback.good { background: var(--good-soft); color: var(--text); border-left: 5px solid var(--good); }
+    .feedback.bad { background: var(--bad-soft); color: var(--text); border-left: 5px solid var(--bad); }
+    .feedback.info { background: var(--surface-2); border-left: 5px solid var(--muted); }
+
+    .mcq-options { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .mcq-options button { text-align: left; }
+    .mcq-options button.right { background: var(--good-soft); border-color: var(--good); }
+    .mcq-options button.wrong { background: var(--bad-soft); border-color: var(--bad); }
+
+    /* ---------- Station 1: counting words ---------- */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+    .compare-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .compare-pair > div { background: var(--surface-2); border-radius: 10px; padding: 10px; text-align: center; }
+    .compare-pair .emoji { font-size: 2rem; line-height: 1.2; }
+
+    /* ---------- Particle drawing ---------- */
+    .particle-box {
+      display: flex; justify-content: center; align-items: center;
+      background: var(--surface-2);
+      border-radius: 10px;
+      min-height: 170px;
+    }
+    .particle-box svg { width: 100%; max-width: 280px; height: auto; }
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    table.calc { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    table.calc th, table.calc td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+    table.calc td.num, table.calc th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    table.calc tr.total td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--text); }
+
+    .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin-right: 6px; border: 1px solid rgba(0,0,0,0.25); }
+
+    /* ---------- Station 4: scale slider ---------- */
+    .slider-wrap { position: relative; margin: 18px 0 6px; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .ticks { position: relative; height: 14px; margin: 0 8px; }
+    .ticks span { position: absolute; top: 0; width: 2px; height: 10px; background: var(--muted); transform: translateX(-1px); }
+    .dot-field { background: var(--surface-2); border-radius: 10px; width: 100%; height: auto; display: block; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { background: var(--surface-2); border-radius: 10px; padding: 10px; }
+    .stat .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .stat .value { font-size: 1.15rem; font-weight: 700; word-break: break-word; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
+    .badge.yes { background: var(--good-soft); color: var(--good); }
+    .badge.no { background: var(--bad-soft); color: var(--bad); }
+
+    /* ---------- Station 5: balance ---------- */
+    .balance-svg { width: 100%; height: auto; display: block; }
+    .beam, .pan { transition: transform 1s cubic-bezier(.3,1.5,.5,1); }
+    @media (prefers-reduced-motion: reduce) {
+      .beam, .pan { transition: none; }
+      .station.active { animation: none; }
+    }
+    .pan-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .pan-info > div { background: var(--surface-2); border-radius: 10px; padding: 10px; }
+    .pan-info select { width: 100%; margin-bottom: 6px; }
+
+    /* ---------- Station 6: converter ---------- */
+    .tri-svg { width: 100%; max-width: 220px; height: auto; display: block; margin: 0 auto; }
+    .working { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--surface-2); padding: 10px 12px; border-radius: 8px; white-space: pre-wrap; font-size: 0.92rem; overflow-wrap: anywhere; }
+
+    /* ---------- Quiz ---------- */
+    .scorebar { display: flex; gap: 14px; flex-wrap: wrap; font-weight: 600; }
+    .question { font-size: 1.08rem; margin: 10px 0; }
+
+    .nav-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; }
+
+    details.teacher { margin-top: 24px; }
+    details.teacher summary { cursor: pointer; font-weight: 700; }
+    details.teacher ul { margin: 6px 0; padding-left: 20px; }
+
+    sub, sup { line-height: 0; }
+
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .stat-grid, .pan-info, .compare-pair { grid-template-columns: 1fr; }
+      nav.stepper button .lbl { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+  <h1>The Mole Explorer</h1>
+  <p class="subtitle">How chemists count particles that are far too small and far too many to see</p>
+</header>
+
+<nav class="stepper" id="stepper" aria-label="Stations"></nav>
+
+<!-- =============================================================
+     STATION 1 — A mole is a counting word
+     ============================================================= -->
+<section class="station" data-title="A counting word">
+  <div class="station-head">
+    <h2>1 · A mole is just a number</h2>
+    <p>You already use words that stand for a number of things. Pick a counting word.</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h3>Counting words</h3>
+      <div class="chips" id="unitChips"></div>
+      <div class="big-number" id="unitNumber"></div>
+      <div class="muted" id="unitWords"></div>
+      <div class="compare-pair">
+        <div>
+          <div class="emoji" aria-hidden="true">🥚</div>
+          <strong id="eggTitle"></strong>
+          <div id="eggMass"></div>
+        </div>
+        <div>
+          <div class="emoji" aria-hidden="true">🍉</div>
+          <strong id="melonTitle"></strong>
+          <div id="melonMass"></div>
+        </div>
+      </div>
+      <p class="small muted" id="unitComment"></p>
+    </div>
+    <div class="card">
+      <h3>Quick check</h3>
+      <div id="mcq1"></div>
+      <div class="key-idea">
+        <strong>Key idea</strong>
+        1 mole = 6.022 × 10²³ particles. This number is the <em>Avogadro constant</em>, N<sub>A</sub>.
+        Like "a dozen", it tells you <em>how many</em>, never how heavy.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================================
+     STATION 2 — Counting by weighing
+     ============================================================= -->
+<section class="station" data-title="Counting by weighing">
+  <div class="station-head">
+    <h2>2 · Counting by weighing</h2>
+    <p>Banks weigh coins instead of counting them. If you know the mass of <em>one</em> item, a balance can count for you.</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h3>Weigh instead of count</h3>
+      <div class="field">
+        <label for="itemSelect">Item</label>
+        <select id="itemSelect"></select>
+      </div>
+      <div class="field">
+        <label for="itemCount">How many do you need?</label>
+        <input type="text" id="itemCount" value="500" inputmode="decimal">
+      </div>
+      <div class="stat">
+        <div class="label">Weigh out</div>
+        <div class="value" id="itemMassOut"></div>
+      </div>
+      <div class="working" id="itemWorking" style="margin-top:8px"></div>
+      <div class="think" id="itemThink"></div>
+    </div>
+    <div class="card">
+      <h3>The big question</h3>
+      <p>One carbon-12 atom has a mass of <strong>1.993 × 10⁻²³ g</strong>.
+         How many carbon-12 atoms are in exactly <strong>12 g</strong>?</p>
+      <p class="small muted">Make a prediction first:</p>
+      <div class="mcq-options" id="carbonGuess"></div>
+      <div id="carbonReveal" style="display:none; margin-top:12px">
+        <div class="working" id="carbonWorking"></div>
+        <div class="big-number" id="carbonCounter" style="margin-top:8px" aria-live="polite"></div>
+        <div class="key-idea">
+          <strong>That's the Avogadro constant!</strong>
+          12 g of carbon-12 contains 6.022 × 10²³ atoms — exactly one mole. Because the mole is linked to
+          the atomic mass scale like this, the relative mass of any particle (A<sub>r</sub> or M<sub>r</sub>)
+          is also the mass in grams of <em>one mole</em> of it.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================================
+     STATION 3 — Inside a particle (Mr)
+     ============================================================= -->
+<section class="station" data-title="Inside a particle">
+  <div class="station-head">
+    <h2>3 · Inside one particle</h2>
+    <p>Before we count particles, decide what a single particle <em>is</em> — and how heavy it is compared to others.</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <label for="subSel3">Substance</label>
+        <select class="sub-select" id="subSel3"></select>
+      </div>
+      <div class="particle-box" style="margin-top:10px" id="particle3"></div>
+      <p style="margin:10px 0 0">One particle is a <span class="tag" id="ptype3"></span></p>
+      <p class="small muted" id="ptypeNote3"></p>
+    </div>
+    <div class="card">
+      <h3 id="mrTitle">Relative formula mass</h3>
+      <table class="calc" id="mrTable"></table>
+      <p id="mrSentence"></p>
+      <h3 style="margin-top:14px">Atoms in <input type="number" id="invMoles" value="1" min="0" step="0.5" style="width:80px; display:inline-block"> mol of <span id="invFormula"></span></h3>
+      <div id="inventory"></div>
+    </div>
+  </div>
+  <div class="key-idea">
+    <strong>Key idea</strong>
+    Always ask "a mole of <em>what</em>?" One mole of H<sub>2</sub>O molecules contains 2 mol of H atoms and
+    1 mol of O atoms — 3 mol of atoms altogether.
+  </div>
+</section>
+
+<!-- =============================================================
+     STATION 4 — Scaling up
+     ============================================================= -->
+<section class="station" data-title="Scaling up">
+  <div class="station-head">
+    <h2>4 · From one particle to one mole</h2>
+    <p>Drag the slider. Each step to the right multiplies the number of particles by ten.</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <label for="subSel4">Substance</label>
+        <select class="sub-select" id="subSel4"></select>
+      </div>
+      <div class="slider-wrap">
+        <label for="scaleSlider" class="small">Number of particles (powers of ten)</label>
+        <input type="range" id="scaleSlider" min="0" max="23.78" step="0.01" value="0">
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+      </div>
+      <div class="row small" id="landmarks"></div>
+      <svg class="dot-field" id="dotField" viewBox="0 0 400 160" role="img" aria-label="Dots representing particles"></svg>
+      <p class="small muted" id="dotCaption" style="margin:6px 0 0"></p>
+    </div>
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat"><div class="label">Particles</div><div class="value" id="scaleN"></div><div class="small muted" id="scaleWords"></div></div>
+        <div class="stat"><div class="label">Amount</div><div class="value" id="scaleMol"></div></div>
+        <div class="stat"><div class="label">Mass</div><div class="value" id="scaleMass"></div></div>
+        <div class="stat"><div class="label">Time to count at 1 per second</div><div class="value" id="scaleTime"></div></div>
+      </div>
+      <p style="margin-top:12px">Could a school balance (reads to 0.01 g) detect this? <span id="scaleDetect"></span></p>
+      <p class="small" id="scaleLandmarkText"></p>
+      <div class="think">
+        <strong>Think:</strong> slide until the balance can <em>just</em> detect the sample.
+        Roughly how many particles is that? Why can't we simply weigh one molecule?
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================================
+     STATION 5 — Same number, different mass
+     ============================================================= -->
+<section class="station" data-title="Balance">
+  <div class="station-head">
+    <h2>5 · Same number, different mass</h2>
+    <p>Put two substances on the balance. Predict first, then reveal.</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <button class="btn chosen" id="modeMoles">Equal amounts (mol)</button>
+        <button class="btn" id="modeMass">Equal masses (g)</button>
+      </div>
+      <div class="row" style="margin-bottom:6px">
+        <label for="balAmount" id="balAmountLabel">Amount on each pan (mol)</label>
+        <input type="number" id="balAmount" value="1" min="0.1" step="0.1" style="width:100px">
+      </div>
+      <svg class="balance-svg" id="balanceSvg" viewBox="-200 -40 400 230" role="img" aria-label="Balance comparing two pans"></svg>
+      <div class="pan-info">
+        <div>
+          <label for="balLeft" class="small">Left pan</label>
+          <select id="balLeft"></select>
+          <div id="leftInfo" class="small"></div>
+        </div>
+        <div>
+          <label for="balRight" class="small">Right pan</label>
+          <select id="balRight"></select>
+          <div id="rightInfo" class="small"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Predict</h3>
+      <p class="question" id="balQuestion"></p>
+      <div class="row" id="balChoices"></div>
+      <div class="feedback" id="balFeedback" aria-live="polite"></div>
+      <div class="key-idea">
+        <strong>Key idea</strong>
+        Equal <em>moles</em> means equal <em>numbers</em> of particles, but the masses differ because the particles differ in mass.
+        Equal <em>masses</em> means the lighter particles must be more numerous.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================================
+     STATION 6 — Converter
+     ============================================================= -->
+<section class="station" data-title="Converting">
+  <div class="station-head">
+    <h2>6 · Mass ↔ moles ↔ particles</h2>
+    <p>Type in <em>any</em> box. The others update and the working is shown so you can follow every step.</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <label for="subSel6">Substance</label>
+        <select class="sub-select" id="subSel6"></select>
+      </div>
+      <p class="small muted" id="convM" style="margin:6px 0 10px"></p>
+      <div class="field">
+        <label for="cvMass">Mass, m (g)</label>
+        <input type="text" id="cvMass" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="cvMol">Amount, n (mol)</label>
+        <input type="text" id="cvMol" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="cvN">Number of particles, N <span class="muted small">(e.g. 3.01e23 or 3.01 x 10^23)</span></label>
+        <input type="text" id="cvN" inputmode="decimal">
+      </div>
+      <div class="field">
+        <span style="font-weight:600">Number of atoms</span>
+        <div id="cvAtoms" class="small"></div>
+      </div>
+    </div>
+    <div class="card">
+      <svg class="tri-svg" id="triSvg" viewBox="0 0 220 150" role="img" aria-label="Formula triangle: m equals n times M"></svg>
+      <p class="small muted" style="text-align:center; margin-top:4px">Cover the quantity you want: m = n × M &nbsp;·&nbsp; n = m ÷ M &nbsp;·&nbsp; N = n × N<sub>A</sub></p>
+      <h3>Working</h3>
+      <div class="working" id="cvWorking"></div>
+      <div class="think">
+        <strong>Notice:</strong> moles are the "bridge". To go from mass to particles you always pass through moles:
+        <br>mass ÷ M → moles × N<sub>A</sub> → particles
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================================
+     STATION 7 — Quiz
+     ============================================================= -->
+<section class="station" data-title="Check yourself">
+  <div class="station-head">
+    <h2>7 · Check yourself</h2>
+    <p>Questions are generated randomly, so you can keep practising. Feedback tells you <em>why</em> an answer is wrong.</p>
+  </div>
+  <div class="card">
+    <div class="scorebar"><span id="qScore">Score: 0 / 0</span><span id="qStreak">Streak: 0</span></div>
+    <div class="question" id="qText"></div>
+    <div id="qArea"></div>
+    <div class="feedback" id="qFeedback" aria-live="polite"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="qHint">Hint</button>
+      <button class="btn" id="qShow">Show solution</button>
+      <button class="btn primary" id="qNext">Next question</button>
+    </div>
+    <p class="small muted" style="margin-top:10px">A<sub>r</sub> values used: H 1, He 4, C 12, N 14, O 16, Na 23, Cl 35.5, Fe 56 · N<sub>A</sub> = 6.022 × 10²³ mol⁻¹. Answers within 1% are accepted.</p>
+  </div>
+</section>
+
+<div class="nav-foot">
+  <button class="btn" id="prevBtn">← Previous</button>
+  <button class="btn primary" id="nextBtn">Next →</button>
+</div>
+
+<details class="teacher">
+  <summary>Teacher notes</summary>
+  <p><strong>Learning intentions.</strong> Students can explain that the mole is a counting unit (6.022 × 10²³ particles);
+  calculate M from A<sub>r</sub> values; distinguish atoms, molecules and formula units; and convert between mass, amount and number of particles using n = m/M and N = nN<sub>A</sub>.</p>
+  <p><strong>Misconceptions targeted.</strong></p>
+  <ul>
+    <li>"A mole is a mass" / "1 mole always weighs the same" — Stations 1 and 5 (dozen eggs vs dozen watermelons; the balance).</li>
+    <li>"A mole of water contains 6.022 × 10²³ atoms" — Station 3 (atom inventory) and quiz atom-count questions.</li>
+    <li>Multiplying instead of dividing by M, or skipping the mole step when going mass → particles — the quiz detects these specific errors and responds to them.</li>
+    <li>"NaCl is made of molecules" — Station 3 labels it a formula unit of ions.</li>
+  </ul>
+  <p><strong>Suggested sequence.</strong> Work through stations 1–6 in order (about 30–40 min), pausing at each "Think" box for
+  pair discussion. Use station 7 for independent practice or as an exit ticket (e.g. "get a streak of 5").</p>
+  <p><strong>Note on definitions.</strong> Since 2019 the SI defines the mole by fixing N<sub>A</sub> = 6.022 140 76 × 10²³ mol⁻¹
+  exactly; 12 g of carbon-12 is now one mole to within about one part in a billion. Station 2 uses the historical carbon-12 link because it explains
+  why A<sub>r</sub> values double as molar masses. Simplified A<sub>r</sub> values are used throughout.</p>
+</details>
+
+</div>
+
+<script>
+/* ================================================================
+   DATA
+   ================================================================ */
+const NA = 6.02214076e23;
+
+const EL = {
+  H:  { name: "hydrogen", Ar: 1,    color: "#f2f4f7", text: "#1b2333", r: 13 },
+  He: { name: "helium",   Ar: 4,    color: "#5fd3e0", text: "#08323a", r: 16 },
+  C:  { name: "carbon",   Ar: 12,   color: "#3d4450", text: "#ffffff", r: 19 },
+  N:  { name: "nitrogen", Ar: 14,   color: "#3f6fe0", text: "#ffffff", r: 19 },
+  O:  { name: "oxygen",   Ar: 16,   color: "#e04545", text: "#ffffff", r: 19 },
+  Na: { name: "sodium",   Ar: 23,   color: "#8e5bd6", text: "#ffffff", r: 21 },
+  Cl: { name: "chlorine", Ar: 35.5, color: "#2fb35a", text: "#ffffff", r: 24 },
+  Fe: { name: "iron",     Ar: 56,   color: "#c9752b", text: "#ffffff", r: 22 }
+};
+
+// atoms: [element, x, y, charge?]   bonds: [i, j, order]
+const SUBS = {
+  H2O:  { html: "H<sub>2</sub>O", name: "water", type: "molecule",
+          atoms: [["O",0,-10],["H",-33,16],["H",33,16]], bonds: [[0,1,1],[0,2,1]] },
+  CO2:  { html: "CO<sub>2</sub>", name: "carbon dioxide", type: "molecule",
+          atoms: [["O",-46,0],["C",0,0],["O",46,0]], bonds: [[0,1,2],[1,2,2]] },
+  CH4:  { html: "CH<sub>4</sub>", name: "methane", type: "molecule",
+          atoms: [["C",0,0],["H",0,-38],["H",38,0],["H",0,38],["H",-38,0]], bonds: [[0,1,1],[0,2,1],[0,3,1],[0,4,1]] },
+  NH3:  { html: "NH<sub>3</sub>", name: "ammonia", type: "molecule",
+          atoms: [["N",0,-8],["H",-35,14],["H",35,14],["H",0,34]], bonds: [[0,1,1],[0,2,1],[0,3,1]] },
+  O2:   { html: "O<sub>2</sub>", name: "oxygen gas", type: "molecule",
+          atoms: [["O",-22,0],["O",22,0]], bonds: [[0,1,2]] },
+  H2:   { html: "H<sub>2</sub>", name: "hydrogen gas", type: "molecule",
+          atoms: [["H",-17,0],["H",17,0]], bonds: [[0,1,1]] },
+  NaCl: { html: "NaCl", name: "sodium chloride", type: "formula unit",
+          atoms: [["Na",-25,0,"+"],["Cl",24,0,"−"]], bonds: [] },
+  He:   { html: "He", name: "helium", type: "atom", atoms: [["He",0,0]], bonds: [] },
+  C:    { html: "C", name: "carbon", type: "atom", atoms: [["C",0,0]], bonds: [] },
+  Fe:   { html: "Fe", name: "iron", type: "atom", atoms: [["Fe",0,0]], bonds: [] }
+};
+
+const TYPE_NOTES = {
+  "molecule": "Atoms joined by covalent bonds. When we say “a mole of this substance” we mean a mole of these molecules.",
+  "formula unit": "Sodium chloride is ionic — a giant lattice of Na⁺ and Cl⁻ ions, not molecules. We count the simplest ratio, one Na⁺ with one Cl⁻, called a formula unit.",
+  "atom": "Here each particle we count is a single atom, so we use the relative atomic mass, Ar."
+};
+
+for (const k in SUBS) {
+  const s = SUBS[k];
+  s.key = k;
+  s.counts = {};
+  s.atoms.forEach(a => { s.counts[a[0]] = (s.counts[a[0]] || 0) + 1; });
+  s.M = Object.entries(s.counts).reduce((t, [e, c]) => t + c * EL[e].Ar, 0);
+  s.nAtoms = s.atoms.length;
+}
+
+const state = { sub: "H2O", station: 0 };
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+const $ = id => document.getElementById(id);
+const SUP = { "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","-":"⁻" };
+const sup = n => String(n).split("").map(c => SUP[c] || c).join("");
+
+function sci(x, sf = 4) {
+  if (x === 0) return "0";
+  let e = Math.floor(Math.log10(Math.abs(x)));
+  let m = +(x / Math.pow(10, e)).toPrecision(sf);
+  if (Math.abs(m) >= 10) { m /= 10; e++; }
+  if (e === 0) return String(m);
+  return `${m} × 10${sup(e)}`;
+}
+
+function fmt(x, sf = 4) {
+  if (!isFinite(x)) return "—";
+  if (x === 0) return "0";
+  const a = Math.abs(x);
+  if (a >= 0.001 && a < 1e6) return String(+x.toPrecision(sf));
+  return sci(x, sf);
+}
+
+function words(n) {
+  if (n < 1000) return "";
+  const names = [[1e21,"sextillion"],[1e18,"quintillion"],[1e15,"quadrillion"],[1e12,"trillion"],[1e9,"billion"],[1e6,"million"],[1e3,"thousand"]];
+  for (const [v, w] of names) if (n >= v) return `≈ ${+(n / v).toPrecision(3)} ${w}`;
+  return "";
+}
+
+function duration(sec) {
+  if (sec < 60) return `${+sec.toPrecision(3)} s`;
+  if (sec < 3600) return `${+(sec / 60).toPrecision(3)} min`;
+  if (sec < 86400) return `${+(sec / 3600).toPrecision(3)} hours`;
+  const yr = 3.156e7;
+  if (sec < yr) return `${+(sec / 86400).toPrecision(3)} days`;
+  const years = sec / yr;
+  const age = 1.38e10;
+  if (years > age) return `${fmt(years, 3)} years (${fmt(years / age, 3)} × the age of the universe)`;
+  return `${fmt(years, 3)} years`;
+}
+
+// Accepts 6.022e23, 6.022 x 10^23, 6.022×10²³, 1,000 ...
+function parseNum(str) {
+  if (str == null) return NaN;
+  let s = String(str).trim().replace(/,/g, "").replace(/\s+/g, "").replace(/−/g, "-");
+  if (!s) return NaN;
+  const supMap = { "⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","⁻":"-" };
+  s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g, m => "^" + m.split("").map(c => supMap[c]).join(""));
+  s = s.replace(/^10\^(-?\d+)$/, "1e$1");
+  s = s.replace(/[x×*]10\^?(-?\d+)$/i, "e$1");
+  if (!/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s)) return NaN;
+  return Number(s);
+}
+
+function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Draw one particle as SVG markup, centred on (cx, cy) */
+function particleSVG(sub, cx = 0, cy = 0, s = 1, labels = true) {
+  let out = `<g transform="translate(${cx} ${cy}) scale(${s})">`;
+  sub.bonds.forEach(([i, j, order]) => {
+    const [, x1, y1] = sub.atoms[i], [, x2, y2] = sub.atoms[j];
+    const len = Math.hypot(x2 - x1, y2 - y1);
+    const nx = -(y2 - y1) / len, ny = (x2 - x1) / len;
+    const offs = order === 2 ? [-4, 4] : [0];
+    offs.forEach(o => {
+      out += `<line x1="${x1 + nx * o}" y1="${y1 + ny * o}" x2="${x2 + nx * o}" y2="${y2 + ny * o}" stroke="var(--bond)" stroke-width="3.5" stroke-linecap="round"/>`;
+    });
+  });
+  sub.atoms.forEach(([e, x, y, ch]) => {
+    const el = EL[e];
+    out += `<circle cx="${x}" cy="${y}" r="${el.r}" fill="${el.color}" stroke="rgba(0,0,0,0.35)" stroke-width="1.5"/>`;
+    if (labels) {
+      out += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${el.r > 15 ? 14 : 11}" font-weight="700" fill="${el.text}" font-family="system-ui, sans-serif">${e}</text>`;
+      if (ch) out += `<text x="${x + el.r * 0.75}" y="${y - el.r * 0.8}" font-size="14" font-weight="700" fill="var(--text)" font-family="system-ui, sans-serif">${ch}</text>`;
+    }
+  });
+  return out + "</g>";
+}
+
+/* Reusable multiple-choice block */
+function buildMCQ(container, question, options, onDone) {
+  container.innerHTML = `<p class="question" style="margin-top:0">${question}</p><div class="mcq-options"></div><div class="feedback" aria-live="polite"></div>`;
+  const box = container.querySelector(".mcq-options");
+  const fb = container.querySelector(".feedback");
+  options.forEach(opt => {
+    const b = document.createElement("button");
+    b.className = "btn";
+    b.innerHTML = opt.t;
+    b.addEventListener("click", () => {
+      box.querySelectorAll("button").forEach(x => x.classList.remove("right", "wrong"));
+      b.classList.add(opt.correct ? "right" : "wrong");
+      fb.className = "feedback show " + (opt.correct ? "good" : "bad");
+      fb.innerHTML = (opt.correct ? "<strong>Yes!</strong> " : "<strong>Not quite.</strong> ") + opt.fb;
+      if (onDone) onDone(!!opt.correct);
+    });
+    box.appendChild(b);
+  });
+}
+
+function shuffle(a) {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; }
+  return r;
+}
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
+const stations = [...document.querySelectorAll(".station")];
+const visited = new Set();
+
+function buildStepper() {
+  const nav = $("stepper");
+  nav.innerHTML = "";
+  stations.forEach((st, i) => {
+    const b = document.createElement("button");
+    b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.title}</span>`;
+    b.setAttribute("aria-label", `Station ${i + 1}: ${st.dataset.title}`);
+    b.addEventListener("click", () => goTo(i));
+    nav.appendChild(b);
+  });
+}
+
+function goTo(i) {
+  state.station = Math.max(0, Math.min(stations.length - 1, i));
+  visited.add(state.station);
+  stations.forEach((st, k) => st.classList.toggle("active", k === state.station));
+  [...$("stepper").children].forEach((b, k) => {
+    b.classList.toggle("current", k === state.station);
+    b.classList.toggle("visited", visited.has(k) && k !== state.station);
+    if (k === state.station) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+  });
+  $("prevBtn").disabled = state.station === 0;
+  $("nextBtn").disabled = state.station === stations.length - 1;
+  storeSet("moleExplorer.station", String(state.station));
+}
+
+$("prevBtn").addEventListener("click", () => { goTo(state.station - 1); window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); });
+$("nextBtn").addEventListener("click", () => { goTo(state.station + 1); window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); });
+
+/* Shared substance selectors */
+function fillSubSelect(sel, value) {
+  sel.innerHTML = Object.values(SUBS).map(s =>
+    `<option value="${s.key}">${s.key.replace(/(\d)/g, d => "₀₁₂₃₄₅₆₇₈₉"[d])} (${s.name})</option>`).join("");
+  sel.value = value;
+}
+document.querySelectorAll(".sub-select").forEach(sel => {
+  fillSubSelect(sel, state.sub);
+  sel.addEventListener("change", () => {
+    state.sub = sel.value;
+    document.querySelectorAll(".sub-select").forEach(o => { o.value = state.sub; });
+    refreshSubstance();
+  });
+});
+
+function refreshSubstance() {
+  renderStation3();
+  renderScale();
+  convertFrom(lastEdited);
+}
+
+/* ================================================================
+   STATION 1 — counting words
+   ================================================================ */
+const UNITS = [
+  { name: "pair",  n: 2 },
+  { name: "dozen", n: 12 },
+  { name: "ream",  n: 500, note: "(sheets of paper)" },
+  { name: "mole",  n: NA }
+];
+const EGG_KG = 0.06, MELON_KG = 5;
+
+function kg(x) {
+  if (x < 1) return `${+(x * 1000).toPrecision(3)} g`;
+  if (x < 1e4) return `${+x.toPrecision(3)} kg`;
+  return `${sci(x, 3)} kg`;
+}
+
+function showUnit(u) {
+  document.querySelectorAll("#unitChips button").forEach(b => b.classList.toggle("chosen", b.dataset.unit === u.name));
+  $("unitNumber").textContent = `1 ${u.name} = ${u.n < 1e6 ? u.n.toLocaleString() : sci(u.n)}`;
+  $("unitWords").textContent = u.n >= 1e6 ? `${words(u.n)} — a 6 followed by 23 digits` : (u.note || "");
+  $("eggTitle").textContent = `1 ${u.name} of eggs`;
+  $("melonTitle").textContent = `1 ${u.name} of watermelons`;
+  $("eggMass").textContent = `≈ ${kg(u.n * EGG_KG)}`;
+  $("melonMass").textContent = `≈ ${kg(u.n * MELON_KG)}`;
+  if (u.name === "mole") {
+    const moon = 7.35e22;
+    $("unitComment").innerHTML = `A mole of eggs would weigh about ${fmt(u.n * EGG_KG / moon, 2)} × the mass of the Moon! Nobody uses moles for eggs — the number only makes sense for things as tiny as atoms.`;
+  } else {
+    $("unitComment").textContent = `Same number of items on both sides — very different masses. The counting word says nothing about mass.`;
+  }
+}
+
+UNITS.forEach(u => {
+  const b = document.createElement("button");
+  b.className = "btn";
+  b.dataset.unit = u.name;
+  b.textContent = u.name;
+  b.addEventListener("click", () => showUnit(u));
+  $("unitChips").appendChild(b);
+});
+showUnit(UNITS[1]);
+
+buildMCQ($("mcq1"), "A mole of helium atoms and a mole of iron atoms contain…", [
+  { t: "the same number of atoms", correct: true, fb: "Both contain 6.022 × 10²³ atoms, just as a dozen eggs and a dozen watermelons both contain 12 things." },
+  { t: "more iron atoms, because iron is heavier", fb: "Heavier atoms make the <em>mass</em> bigger (56 g vs 4 g) but a mole is a number. Both have 6.022 × 10²³ atoms." },
+  { t: "more helium atoms, because helium atoms are smaller", fb: "Size doesn't change the count. A mole of anything is 6.022 × 10²³ of those particles." },
+  { t: "the same mass", fb: "That's the common trap! Same number, but iron atoms are 14 × heavier, so 1 mol Fe = 56 g while 1 mol He = 4 g." }
+]);
+
+/* ================================================================
+   STATION 2 — counting by weighing
+   ================================================================ */
+const ITEMS = [
+  { name: "paperclip",         m: 1.0,       hint: "A ream-sized box of paperclips is easy to weigh." },
+  { name: "dried pea",         m: 0.20,      hint: "Counting a few thousand peas by hand would take ages — weighing takes seconds." },
+  { name: "grain of rice",     m: 0.020,     hint: "Smaller items → you need far more of them to make a weighable mass." },
+  { name: "carbon-12 atom",    m: 1.9926e-23, hint: "Try asking for 1000 atoms. Could any balance detect that mass? What about 6.022 × 10²³?" }
+];
+$("itemSelect").innerHTML = ITEMS.map((it, i) => `<option value="${i}">${it.name} (${fmt(it.m)} g each)</option>`).join("");
+
+function renderWeighing() {
+  const it = ITEMS[+$("itemSelect").value];
+  const n = parseNum($("itemCount").value);
+  if (!isFinite(n) || n < 0) {
+    $("itemMassOut").textContent = "—";
+    $("itemWorking").textContent = "Enter a number, e.g. 500 or 6.022e23";
+  } else {
+    const m = n * it.m;
+    $("itemMassOut").textContent = `${fmt(m)} g`;
+    $("itemWorking").textContent = `mass = number × mass of one\n     = ${fmt(n)} × ${fmt(it.m)} g\n     = ${fmt(m)} g`;
+  }
+  $("itemThink").innerHTML = `<strong>Think:</strong> ${it.hint}`;
+}
+$("itemSelect").addEventListener("change", renderWeighing);
+$("itemCount").addEventListener("input", renderWeighing);
+renderWeighing();
+
+const carbonOptions = [
+  { t: "about a million (10⁶)", v: 6 },
+  { t: "about a billion billion (10¹⁸)", v: 18 },
+  { t: "about 600 000 billion billion (6 × 10²³)", v: 23.78 },
+  { t: "about 10³⁰ or more", v: 30 }
+];
+carbonOptions.forEach(o => {
+  const b = document.createElement("button");
+  b.className = "btn";
+  b.textContent = o.t;
+  b.addEventListener("click", () => revealCarbon(o, b));
+  $("carbonGuess").appendChild(b);
+});
+
+let carbonAnim = null;
+function revealCarbon(o, btn) {
+  document.querySelectorAll("#carbonGuess button").forEach(b => b.classList.remove("right", "wrong"));
+  btn.classList.add(o.v === 23.78 ? "right" : "wrong");
+  $("carbonReveal").style.display = "block";
+  $("carbonWorking").textContent =
+    `number = total mass ÷ mass of one atom\n       = 12 g ÷ 1.993 × 10⁻²³ g\n       = 6.022 × 10²³ atoms` +
+    (o.v === 23.78 ? "\n\nYour prediction was right!" : `\n\nYour guess was out by a factor of about 10${sup(Math.round(Math.abs(23.78 - o.v)))}.`);
+  if (carbonAnim) cancelAnimationFrame(carbonAnim);
+  const target = Math.log10(NA);
+  if (reduceMotion) { $("carbonCounter").textContent = `${sci(NA)} atoms`; return; }
+  const t0 = performance.now(), dur = 2200;
+  const step = t => {
+    const p = Math.min(1, (t - t0) / dur);
+    const v = target * (1 - Math.pow(1 - p, 3));
+    $("carbonCounter").textContent = `${p < 1 ? sci(Math.pow(10, v), 3) : sci(NA)} atoms`;
+    if (p < 1) carbonAnim = requestAnimationFrame(step);
+  };
+  carbonAnim = requestAnimationFrame(step);
+}
+
+/* ================================================================
+   STATION 3 — inside a particle
+   ================================================================ */
+function renderStation3() {
+  const s = SUBS[state.sub];
+  $("particle3").innerHTML = `<svg viewBox="-90 -60 180 120" role="img" aria-label="Model of one particle of ${s.name}">${particleSVG(s, 0, 0, 1.15)}</svg>`;
+  $("ptype3").textContent = s.type;
+  $("ptypeNote3").textContent = TYPE_NOTES[s.type];
+
+  const sym = s.type === "atom" ? "A<sub>r</sub>" : "M<sub>r</sub>";
+  $("mrTitle").innerHTML = s.type === "atom" ? "Relative atomic mass, A<sub>r</sub>" : "Relative formula mass, M<sub>r</sub>";
+  let rows = `<tr><th>Element</th><th class="num">Atoms</th><th class="num">A<sub>r</sub></th><th class="num">Subtotal</th></tr>`;
+  Object.entries(s.counts).forEach(([e, c]) => {
+    rows += `<tr><td><span class="swatch" style="background:${EL[e].color}"></span>${e} (${EL[e].name})</td><td class="num">${c}</td><td class="num">${EL[e].Ar}</td><td class="num">${c} × ${EL[e].Ar} = ${c * EL[e].Ar}</td></tr>`;
+  });
+  rows += `<tr class="total"><td colspan="3">${sym} of ${s.html}</td><td class="num">${s.M}</td></tr>`;
+  $("mrTable").innerHTML = rows;
+
+  $("mrSentence").innerHTML =
+    `One ${s.type} of ${s.html} is <strong>${s.M}×</strong> the mass of a "standard" unit (1/12 of a carbon-12 atom) — about ${sci(s.M / NA, 3)} g. ` +
+    `So <strong>1 mol of ${s.html} has a mass of ${s.M} g</strong>: the molar mass is M = ${s.M} g mol⁻¹.`;
+
+  $("invFormula").innerHTML = s.html;
+  renderInventory();
+}
+
+function renderInventory() {
+  const s = SUBS[state.sub];
+  let n = parseFloat($("invMoles").value);
+  if (!isFinite(n) || n < 0) n = 0;
+  const parts = Object.entries(s.counts).map(([e, c]) =>
+    `<li><span class="swatch" style="background:${EL[e].color}"></span>${+(n * c).toPrecision(4)} mol of ${e} ${s.type === "formula unit" ? "ions" : "atoms"} = ${sci(n * c * NA, 4)}</li>`).join("");
+  const what = s.type === "atom" ? "atoms" : s.type === "formula unit" ? "formula units" : "molecules";
+  $("inventory").innerHTML =
+    `<p class="small" style="margin:4px 0">${+n.toPrecision(4)} mol of ${what} = ${sci(n * NA, 4)} ${what}</p>
+     <ul class="small" style="margin:4px 0; padding-left:18px; list-style:none">${parts}</ul>
+     ${s.nAtoms > 1 ? `<p class="small" style="margin:4px 0"><strong>Total: ${+(n * s.nAtoms).toPrecision(4)} mol of ${s.type === "formula unit" ? "ions" : "atoms"}</strong> (each ${s.type} has ${s.nAtoms})</p>` : ""}`;
+}
+$("invMoles").addEventListener("input", renderInventory);
+
+/* ================================================================
+   STATION 4 — scaling up
+   ================================================================ */
+const LOG_NA = Math.log10(NA);
+const LANDMARKS = [
+  { v: 0,                 label: "1 particle",                 text: "A single particle — far too light for any balance." },
+  { v: 6,                 label: "1 million",                  text: "A million particles is still unimaginably light." },
+  { v: Math.log10(8.2e9), label: "people on Earth",            text: "About 8.2 billion — one particle for every person on Earth." },
+  { v: 11,                label: "stars in the Milky Way",     text: "Roughly 10¹¹ — one particle for every star in our galaxy (estimates range 1–4 × 10¹¹)." },
+  { v: Math.log10(7.5e18),label: "sand grains on all beaches", text: "A common estimate of every grain of sand on Earth's beaches is ~7.5 × 10¹⁸." },
+  { v: Math.log10(0.05 / 18 * NA), label: "molecules in a raindrop", text: "A 0.05 mL drop of water (0.05 g) holds about 1.7 × 10²¹ water molecules." },
+  { v: 23.78,             label: "1 mole",                     text: "One mole: 6.022 × 10²³ particles — a handful you can hold, measure and weigh." }
+];
+
+LANDMARKS.forEach(l => {
+  const t = document.createElement("span");
+  t.style.left = `${(l.v / 23.78) * 100}%`;
+  $("ticks").appendChild(t);
+  const b = document.createElement("button");
+  b.className = "btn";
+  b.style.padding = "4px 10px";
+  b.textContent = l.label;
+  b.addEventListener("click", () => { $("scaleSlider").value = l.v; renderScale(); });
+  $("landmarks").appendChild(b);
+});
+
+function renderScale() {
+  const s = SUBS[state.sub];
+  const v = +$("scaleSlider").value;
+  const raw = Math.pow(10, v);
+  const N = v >= 23.77 ? NA : raw < 1e4 ? Math.round(raw) : raw;
+  const mass = N * s.M / NA;
+  $("scaleSlider").setAttribute("aria-valuetext", `${sci(N, 3)} particles`);
+
+  $("scaleN").textContent = N < 1e6 ? N.toLocaleString() : sci(N, 4);
+  $("scaleWords").textContent = words(N);
+  $("scaleMol").textContent = `${fmt(N / NA, 4)} mol`;
+  $("scaleMass").textContent = `${fmt(mass, 4)} g`;
+  $("scaleTime").textContent = duration(N);
+  const detect = mass >= 0.01;
+  $("scaleDetect").innerHTML = detect ? `<span class="badge yes">Yes</span>` : `<span class="badge no">No — too light</span>`;
+
+  let nearest = LANDMARKS.reduce((a, b) => Math.abs(b.v - v) < Math.abs(a.v - v) ? b : a);
+  $("scaleLandmarkText").textContent = Math.abs(nearest.v - v) < 0.6 ? nearest.text : "";
+
+  // Dot field: each dot stands for 10^k particles so that at most 400 dots are drawn
+  let k = 0, dots = N;
+  if (N > 400) { k = Math.ceil(Math.log10(N / 400)); dots = Math.max(1, Math.round(N / Math.pow(10, k))); }
+  const cols = 25, gap = 16;
+  let svg = "";
+  const showMolecule = dots <= 3;
+  if (showMolecule) {
+    for (let i = 0; i < dots; i++) svg += particleSVG(s, 200 + (i - (dots - 1) / 2) * 120, 80, 1);
+  } else {
+    const c = EL[s.atoms[0][0]].color;
+    for (let i = 0; i < dots; i++) {
+      const x = 8 + (i % cols) * gap, y = 8 + Math.floor(i / cols) * 9.5;
+      svg += `<circle cx="${x}" cy="${y}" r="3.6" fill="${c}" stroke="rgba(0,0,0,0.35)" stroke-width="0.8"/>`;
+    }
+  }
+  $("dotField").innerHTML = svg;
+  $("dotCaption").innerHTML = k === 0
+    ? (showMolecule ? `Showing every particle of ${s.html}.` : `Each dot is one particle of ${s.html}.`)
+    : `Each dot represents <strong>10${sup(k)}</strong> particles${k >= 6 ? ` (${words(Math.pow(10, k)).replace("≈ ", "")})` : ""}.`;
+}
+$("scaleSlider").addEventListener("input", renderScale);
+
+/* ================================================================
+   STATION 5 — balance
+   ================================================================ */
+const bal = { mode: "moles", predicted: false };
+["balLeft", "balRight"].forEach((id, i) => fillSubSelect($(id), i === 0 ? "H2" : "CO2"));
+
+function setBalMode(mode) {
+  bal.mode = mode;
+  $("modeMoles").classList.toggle("chosen", mode === "moles");
+  $("modeMass").classList.toggle("chosen", mode === "mass");
+  $("balAmountLabel").textContent = mode === "moles" ? "Amount on each pan (mol)" : "Mass on each pan (g)";
+  $("balAmount").value = mode === "moles" ? 1 : 10;
+  resetBalance();
+}
+$("modeMoles").addEventListener("click", () => setBalMode("moles"));
+$("modeMass").addEventListener("click", () => setBalMode("mass"));
+["balLeft", "balRight", "balAmount"].forEach(id => $(id).addEventListener("input", resetBalance));
+
+function balanceData() {
+  const L = SUBS[$("balLeft").value], R = SUBS[$("balRight").value];
+  let a = parseFloat($("balAmount").value);
+  if (!isFinite(a) || a <= 0) a = bal.mode === "moles" ? 1 : 10;
+  const side = s => bal.mode === "moles"
+    ? { s, n: a, m: a * s.M }
+    : { s, n: a / s.M, m: a };
+  return { L: side(L), R: side(R) };
+}
+
+function drawBalance(reveal) {
+  const { L, R } = balanceData();
+  let angle = 0;
+  if (reveal) angle = Math.max(-18, Math.min(18, 30 * (R.m - L.m) / (R.m + L.m)));
+  const arm = 140, rad = angle * Math.PI / 180;
+  const lx = -arm * Math.cos(rad), ly = -arm * Math.sin(rad);
+  const rx = arm * Math.cos(rad), ry = arm * Math.sin(rad);
+
+  // particle icons on each pan: equal for equal moles, proportional to n for equal masses
+  const maxN = Math.max(L.n, R.n);
+  const icons = side => reveal || bal.mode === "moles"
+    ? Math.max(1, Math.round(6 * side.n / maxN)) : 0;
+  const panGroup = (side, x, y, cls) => {
+    const k = icons(side);
+    let g = `<g class="pan" style="transform: translate(${x}px, ${y}px)" id="${cls}">`;
+    g += `<line x1="-40" y1="80" x2="0" y2="0" stroke="var(--balance)" stroke-width="1.5"/><line x1="40" y1="80" x2="0" y2="0" stroke="var(--balance)" stroke-width="1.5"/>`;
+    g += `<path d="M-50 80 Q0 100 50 80 Z" fill="var(--surface-2)" stroke="var(--balance)" stroke-width="2"/>`;
+    for (let i = 0; i < k; i++) {
+      const col = i % 3, row = Math.floor(i / 3);
+      g += particleSVG(side.s, -26 + col * 26, 72 - row * 20, 0.32, false);
+    }
+    if (!reveal && bal.mode === "mass") g += `<text x="0" y="66" text-anchor="middle" font-size="22" font-weight="700" fill="var(--muted)">?</text>`;
+    return g + "</g>";
+  };
+
+  $("balanceSvg").innerHTML = `
+    <polygon points="-50,180 50,180 10,170 -10,170" fill="var(--balance)"/>
+    <rect x="-5" y="0" width="10" height="172" fill="var(--balance)"/>
+    <g class="beam" style="transform: rotate(${angle}deg)">
+      <rect x="-${arm + 6}" y="-4" width="${2 * arm + 12}" height="8" rx="4" fill="var(--balance)"/>
+    </g>
+    <circle cx="0" cy="0" r="7" fill="var(--text)"/>
+    ${panGroup(L, lx, ly, "panL")}
+    ${panGroup(R, rx, ry, "panR")}`;
+
+  const info = side => reveal
+    ? `${side.s.html}: <strong>${fmt(side.n, 3)} mol</strong>, <strong>${fmt(side.m, 3)} g</strong><br>${sci(side.n * NA, 3)} particles`
+    : bal.mode === "moles"
+      ? `${side.s.html}: ${fmt(side.n, 3)} mol · mass = ?`
+      : `${side.s.html}: ${fmt(side.m, 3)} g · particles = ?`;
+  $("leftInfo").innerHTML = info(L);
+  $("rightInfo").innerHTML = info(R);
+}
+
+function resetBalance() {
+  bal.predicted = false;
+  const { L, R } = balanceData();
+  const q = bal.mode === "moles"
+    ? `Both pans hold ${fmt(L.n, 3)} mol. Which pan is heavier?`
+    : `Both pans hold ${fmt(L.m, 3)} g. Which pan has more particles?`;
+  $("balQuestion").innerHTML = q;
+  const choices = bal.mode === "moles"
+    ? [["left", `Left (${L.s.html})`], ["same", "Balanced"], ["right", `Right (${R.s.html})`]]
+    : [["left", `Left (${L.s.html})`], ["same", "Same number"], ["right", `Right (${R.s.html})`]];
+  $("balChoices").innerHTML = "";
+  choices.forEach(([v, t]) => {
+    const b = document.createElement("button");
+    b.className = "btn";
+    b.innerHTML = t;
+    b.addEventListener("click", () => answerBalance(v, b));
+    $("balChoices").appendChild(b);
+  });
+  const skip = document.createElement("button");
+  skip.className = "btn";
+  skip.textContent = "Just show me";
+  skip.addEventListener("click", () => answerBalance(null, skip));
+  $("balChoices").appendChild(skip);
+  $("balFeedback").className = "feedback";
+  drawBalance(false);
+}
+
+function answerBalance(choice, btn) {
+  if (bal.predicted) return;
+  bal.predicted = true;
+  const { L, R } = balanceData();
+  const cmp = (a, b) => Math.abs(a - b) / Math.max(a, b) < 1e-9 ? "same" : a > b ? "left" : "right";
+  const correct = bal.mode === "moles" ? cmp(L.m, R.m) : cmp(L.n, R.n);
+  drawBalance(true);
+  [...$("balChoices").children].forEach(b => { b.disabled = true; });
+  let expl;
+  if (bal.mode === "moles") {
+    expl = correct === "same"
+      ? `Both substances have M = ${L.s.M} g mol⁻¹, so equal moles have equal mass.`
+      : `Same number of particles on each side (${sci(L.n * NA, 3)}), but one ${L.s.html} particle has M<sub>r</sub> ${L.s.M} and one ${R.s.html} particle has M<sub>r</sub> ${R.s.M}. ` +
+        `So the masses are ${fmt(L.m, 3)} g vs ${fmt(R.m, 3)} g.`;
+  } else {
+    expl = correct === "same"
+      ? `Both substances have the same M, so equal masses contain equal numbers of particles.`
+      : `The balance is level — equal masses. But n = m ÷ M: ${fmt(L.m, 3)} ÷ ${L.s.M} = ${fmt(L.n, 3)} mol vs ${fmt(R.m, 3)} ÷ ${R.s.M} = ${fmt(R.n, 3)} mol. ` +
+        `Lighter particles → more of them are needed to make the same mass.`;
+  }
+  const fb = $("balFeedback");
+  if (choice === null) {
+    fb.className = "feedback show info";
+    fb.innerHTML = expl + " <em>Change a substance to try predicting.</em>";
+  } else {
+    const ok = choice === correct;
+    btn.classList.add("chosen");
+    fb.className = "feedback show " + (ok ? "good" : "bad");
+    fb.innerHTML = (ok ? "<strong>Correct!</strong> " : "<strong>Not this time.</strong> ") + expl;
+  }
+}
+resetBalance();
+
+/* ================================================================
+   STATION 6 — converter
+   ================================================================ */
+let lastEdited = "mol";
+const cv = { mass: $("cvMass"), mol: $("cvMol"), N: $("cvN") };
+cv.mol.value = "1";
+
+function triangle(highlight) {
+  const hl = k => highlight === k ? "var(--accent)" : "var(--text)";
+  return `
+    <polygon points="110,8 210,142 10,142" fill="var(--surface-2)" stroke="var(--text)" stroke-width="2"/>
+    <line x1="58" y1="78" x2="162" y2="78" stroke="var(--text)" stroke-width="2"/>
+    <line x1="110" y1="78" x2="110" y2="142" stroke="var(--text)" stroke-width="2"/>
+    <text x="110" y="60" text-anchor="middle" font-size="26" font-weight="700" fill="${hl("mass")}" font-style="italic">m</text>
+    <text x="78" y="120" text-anchor="middle" font-size="26" font-weight="700" fill="${hl("mol")}" font-style="italic">n</text>
+    <text x="142" y="120" text-anchor="middle" font-size="26" font-weight="700" fill="var(--text)" font-style="italic">M</text>`;
+}
+
+function convertFrom(which) {
+  lastEdited = which;
+  const s = SUBS[state.sub];
+  const M = s.M;
+  $("convM").innerHTML = `Molar mass of ${s.html}: M = ${M} g mol⁻¹ (from M<sub>r</sub> = ${M}) · N<sub>A</sub> = 6.022 × 10²³ mol⁻¹`;
+  const raw = cv[which].value;
+  const v = parseNum(raw);
+  let n, w;
+  if (!isFinite(v) || v < 0) {
+    $("cvWorking").textContent = raw.trim() ? "That doesn't look like a number. Try e.g. 18, 0.5 or 3.01e23." : "Type a value in any box.";
+    ["mass", "mol", "N"].filter(k => k !== which).forEach(k => { cv[k].value = ""; });
+    $("cvAtoms").textContent = "—";
+    $("triSvg").innerHTML = triangle(null);
+    return;
+  }
+  if (which === "mass") {
+    n = v / M;
+    w = `Step 1: mass → moles\n  n = m ÷ M = ${fmt(v)} g ÷ ${M} g mol⁻¹ = ${fmt(n)} mol\n` +
+        `Step 2: moles → particles\n  N = n × N_A = ${fmt(n)} × 6.022 × 10²³ = ${sci(n * NA)}`;
+  } else if (which === "mol") {
+    n = v;
+    w = `mass:      m = n × M = ${fmt(n)} mol × ${M} g mol⁻¹ = ${fmt(n * M)} g\n` +
+        `particles: N = n × N_A = ${fmt(n)} × 6.022 × 10²³ = ${sci(n * NA)}`;
+  } else {
+    n = v / NA;
+    w = `Step 1: particles → moles\n  n = N ÷ N_A = ${sci(v)} ÷ 6.022 × 10²³ = ${fmt(n)} mol\n` +
+        `Step 2: moles → mass\n  m = n × M = ${fmt(n)} mol × ${M} g mol⁻¹ = ${fmt(n * M)} g`;
+  }
+  if (which !== "mol") cv.mol.value = plain(n);
+  if (which !== "N") cv.N.value = plain(n * NA);
+  if (which !== "mass") cv.mass.value = plain(n * M);
+  $("cvWorking").textContent = w;
+  $("triSvg").innerHTML = triangle(which === "mass" ? "mol" : "mass");
+
+  const unit = s.type === "formula unit" ? "ions" : "atoms";
+  const lines = Object.entries(s.counts).map(([e, c]) => `${e}: ${sci(n * c * NA, 4)}`).join(" · ");
+  $("cvAtoms").innerHTML = s.nAtoms > 1
+    ? `${lines}<br><strong>Total ${unit}: ${sci(n * s.nAtoms * NA, 4)}</strong> (${s.nAtoms} per ${s.type})`
+    : `${sci(n * NA, 4)} atoms (each particle is a single atom)`;
+}
+
+// Machine-friendly number for input boxes (uses e-notation for very large/small values)
+function plain(x) {
+  if (x === 0) return "0";
+  const a = Math.abs(x);
+  if (a >= 0.001 && a < 1e6) return String(+x.toPrecision(4));
+  return x.toExponential(3).replace("e+", "e");
+}
+
+["mass", "mol", "N"].forEach(k => cv[k].addEventListener("input", () => convertFrom(k)));
+
+/* ================================================================
+   STATION 7 — quiz
+   ================================================================ */
+const quiz = { score: 0, total: 0, streak: 0, q: null, answered: false };
+const close = (a, b) => b === 0 ? Math.abs(a) < 1e-9 : Math.abs(a - b) / Math.abs(b) <= 0.01;
+const arList = s => Object.keys(s.counts).map(e => `${e} = ${EL[e].Ar}`).join(", ");
+
+const GENERATORS = [
+  // mass -> moles
+  () => {
+    const s = SUBS[pick(["H2O", "CO2", "CH4", "NH3", "O2", "NaCl", "Fe", "C"])];
+    const n = pick([0.1, 0.2, 0.25, 0.5, 2, 2.5, 3, 4]);
+    const m = +(n * s.M).toPrecision(4);
+    return {
+      text: `How many moles are in <strong>${m} g</strong> of ${s.html}? <span class="muted small">(A<sub>r</sub>: ${arList(s)})</span>`,
+      unit: "mol", answer: m / s.M,
+      hint: `First find M by adding up the A<sub>r</sub> values, then use n = m ÷ M.`,
+      working: `M(${s.html}) = ${s.M} g mol⁻¹\nn = m ÷ M = ${m} ÷ ${s.M} = ${fmt(m / s.M)} mol`,
+      traps: [
+        { v: m * s.M, fb: "You multiplied mass by molar mass. To get moles from mass, <em>divide</em>: n = m ÷ M." },
+        { v: s.M / m, fb: "You divided the wrong way round (M ÷ m). It's n = m ÷ M." },
+        { v: m / Math.max(...Object.keys(s.counts).map(e => EL[e].Ar)), fb: "Looks like you used the A<sub>r</sub> of just one element. Add up <em>all</em> the atoms to get M." }
+      ]
+    };
+  },
+  // moles -> mass
+  () => {
+    const s = SUBS[pick(["H2O", "CO2", "CH4", "NH3", "O2", "H2", "NaCl", "He"])];
+    const n = pick([0.1, 0.5, 1.5, 2, 3, 5, 0.25]);
+    return {
+      text: `What is the mass of <strong>${n} mol</strong> of ${s.html}? <span class="muted small">(A<sub>r</sub>: ${arList(s)})</span>`,
+      unit: "g", answer: n * s.M,
+      hint: `m = n × M`,
+      working: `M(${s.html}) = ${s.M} g mol⁻¹\nm = n × M = ${n} × ${s.M} = ${fmt(n * s.M)} g`,
+      traps: [
+        { v: n / s.M, fb: "You divided. To go from moles to mass, multiply: m = n × M." },
+        { v: s.M, fb: `${s.M} g is the mass of <em>one</em> mole. You have ${n} mol.` }
+      ]
+    };
+  },
+  // moles -> particles
+  () => {
+    const s = SUBS[pick(["H2O", "CO2", "O2", "CH4", "Fe"])];
+    const n = pick([0.5, 2, 3, 0.1, 0.25, 1.5]);
+    const what = s.type === "atom" ? "atoms" : "molecules";
+    return {
+      text: `How many ${what} are in <strong>${n} mol</strong> of ${s.html}?`,
+      unit: what, answer: n * NA,
+      hint: `N = n × N<sub>A</sub>. You can type e.g. 1.2e24 or 1.2 x 10^24.`,
+      working: `N = n × N_A = ${n} × 6.022 × 10²³ = ${sci(n * NA)} ${what}`,
+      traps: [
+        { v: n / NA, fb: "You divided by N<sub>A</sub>. More moles means more particles, so multiply: N = n × N<sub>A</sub>." },
+        { v: NA, fb: `That's the number in <em>one</em> mole. You have ${n} mol.` }
+      ]
+    };
+  },
+  // mass -> particles (two step)
+  () => {
+    const s = SUBS[pick(["H2O", "CO2", "CH4", "NH3", "O2"])];
+    const n = pick([0.5, 2, 0.25, 0.1]);
+    const m = +(n * s.M).toPrecision(4);
+    return {
+      text: `How many molecules are in <strong>${m} g</strong> of ${s.html}? <span class="muted small">(A<sub>r</sub>: ${arList(s)})</span>`,
+      unit: "molecules", answer: m / s.M * NA,
+      hint: `Two steps: mass → moles (÷ M), then moles → molecules (× N<sub>A</sub>).`,
+      working: `Step 1: n = m ÷ M = ${m} ÷ ${s.M} = ${fmt(m / s.M)} mol\nStep 2: N = n × N_A = ${fmt(m / s.M)} × 6.022 × 10²³ = ${sci(m / s.M * NA)}`,
+      traps: [
+        { v: m * NA, fb: "You skipped the moles step — you multiplied grams by N<sub>A</sub>. Convert mass to moles first (÷ M)." },
+        { v: m * s.M * NA, fb: "You multiplied by M in step 1. Mass → moles means divide: n = m ÷ M." }
+      ]
+    };
+  },
+  // atoms inside molecules
+  () => {
+    const s = SUBS[pick(["H2O", "CH4", "NH3", "CO2"])];
+    const multi = Object.entries(s.counts).filter(([, c]) => c > 1);
+    const [e, c] = pick(multi);
+    const n = pick([1, 2, 3, 0.5]);
+    return {
+      text: `How many moles of <strong>${EL[e].name} atoms</strong> are in ${n} mol of ${s.html}?`,
+      unit: "mol", answer: n * c,
+      hint: `Count how many ${e} atoms are in ONE molecule of ${s.html}.`,
+      working: `Each ${s.html} molecule contains ${c} ${e} atoms.\nn(${e}) = ${n} × ${c} = ${n * c} mol`,
+      traps: [
+        { v: n, fb: `That's the number of moles of <em>molecules</em>. Each molecule contains ${c} ${e} atoms.` },
+        { v: n * s.nAtoms, fb: `That's the total of all atoms. The question only asks about ${EL[e].name}.` }
+      ]
+    };
+  },
+  // conceptual MCQs
+  () => pick(CONCEPT_QS)
+];
+
+const CONCEPT_QS = [
+  { mcq: true, text: "Which contains more particles: 1 mol of H<sub>2</sub> or 1 mol of CO<sub>2</sub>?",
+    options: [
+      { t: "They contain the same number", correct: true, fb: "1 mol of anything = 6.022 × 10²³ particles." },
+      { t: "CO<sub>2</sub>, because it has more atoms per molecule", fb: "It has more <em>atoms</em> per molecule, but the number of <em>molecules</em> is identical — 6.022 × 10²³." },
+      { t: "H<sub>2</sub>, because its molecules are smaller", fb: "Equal moles means equal numbers, whatever the size." }
+    ] },
+  { mcq: true, text: "Which contains more molecules: 10 g of H<sub>2</sub> or 10 g of CO<sub>2</sub>?",
+    options: [
+      { t: "10 g of H<sub>2</sub>", correct: true, fb: "n = 10 ÷ 2 = 5 mol of H<sub>2</sub>, but only 10 ÷ 44 = 0.23 mol of CO<sub>2</sub>. Lighter molecules → more of them per gram." },
+      { t: "10 g of CO<sub>2</sub>", fb: "CO<sub>2</sub> molecules are 22× heavier, so 10 g contains far fewer of them (0.23 mol vs 5 mol)." },
+      { t: "The same", fb: "Equal <em>masses</em> are not equal <em>numbers</em>. Use n = m ÷ M for each." }
+    ] },
+  { mcq: true, text: "What is the mass of 1 mol of H<sub>2</sub>O?",
+    options: [
+      { t: "18 g", correct: true, fb: "M<sub>r</sub> = 2(1) + 16 = 18, so 1 mol has a mass of 18 g." },
+      { t: "6.022 × 10²³ g", fb: "6.022 × 10²³ is the <em>number</em> of molecules in a mole, not its mass." },
+      { t: "3.0 × 10⁻²³ g", fb: "That's the mass of <em>one</em> molecule (18 ÷ 6.022 × 10²³)." },
+      { t: "1 g", fb: "A mole is not defined as a mass. Its mass depends on the particle: here 18 g." }
+    ] },
+  { mcq: true, text: "How many atoms in total are in 1 mol of CH<sub>4</sub>?",
+    options: [
+      { t: "5 × 6.022 × 10²³", correct: true, fb: "Each CH<sub>4</sub> molecule has 5 atoms (1 C + 4 H), so 5 mol of atoms." },
+      { t: "6.022 × 10²³", fb: "That's the number of <em>molecules</em>. Each molecule contains 5 atoms." },
+      { t: "4 × 6.022 × 10²³", fb: "That's just the H atoms — don't forget the carbon." },
+      { t: "16 × 6.022 × 10²³", fb: "16 is M<sub>r</sub>, a relative mass — not a count of atoms." }
+    ] },
+  { mcq: true, text: "Which statement best describes a mole?",
+    options: [
+      { t: "A fixed number of particles (6.022 × 10²³)", correct: true, fb: "Exactly — it's a counting unit, like a dozen." },
+      { t: "1 g of any substance", fb: "The mass of a mole depends on the substance: 2 g for H<sub>2</sub>, 44 g for CO<sub>2</sub>." },
+      { t: "The mass of one particle", fb: "One particle has a tiny mass (~10⁻²³ g). A mole is a huge <em>number</em> of particles." },
+      { t: "A volume of 1 litre", fb: "A mole is a number of particles, not a volume." }
+    ] },
+  { mcq: true, text: "1 mol of NaCl contains…",
+    options: [
+      { t: "1 mol of Na⁺ ions and 1 mol of Cl⁻ ions", correct: true, fb: "Each formula unit is one Na⁺ and one Cl⁻." },
+      { t: "1 mol of NaCl molecules", fb: "NaCl is ionic — a lattice of ions, not molecules. We count formula units." },
+      { t: "58.5 particles", fb: "58.5 is M<sub>r</sub>, a relative mass — 1 mol is 58.5 g, containing 6.022 × 10²³ formula units." }
+    ] },
+  { mcq: true, text: "Which has more atoms: 12 g of carbon (A<sub>r</sub> 12) or 56 g of iron (A<sub>r</sub> 56)?",
+    options: [
+      { t: "The same", correct: true, fb: "12 ÷ 12 = 1 mol and 56 ÷ 56 = 1 mol — the same number of atoms, even though the masses differ." },
+      { t: "Iron, because 56 g is more", fb: "More mass, but iron atoms are heavier. n = 56 ÷ 56 = 1 mol, the same as carbon." },
+      { t: "Carbon, because its atoms are lighter", fb: "Lighter atoms, yes — but there's less mass of carbon too. Both are 1 mol." }
+    ] }
+];
+
+function newQuestion() {
+  quiz.q = pick(GENERATORS)();
+  quiz.answered = false;
+  quiz.tries = 0;
+  $("qText").innerHTML = quiz.q.text;
+  $("qFeedback").className = "feedback";
+  $("qHint").disabled = !!quiz.q.mcq;
+  $("qShow").disabled = !!quiz.q.mcq;
+  const area = $("qArea");
+  if (quiz.q.mcq) {
+    area.innerHTML = "";
+    buildMCQ(area, "", shuffle(quiz.q.options), ok => { if (!quiz.answered) record(ok); });
+    area.querySelector(".question").remove();
+  } else {
+    area.innerHTML = `<form class="row" id="qForm"><input type="text" id="qInput" style="max-width:240px" inputmode="decimal" autocomplete="off" aria-label="Your answer"><span>${quiz.q.unit}</span><button class="btn primary" type="submit">Check</button></form>`;
+    $("qForm").addEventListener("submit", e => { e.preventDefault(); checkNumeric(); });
+    $("qInput").focus({ preventScroll: true });
+  }
+}
+
+function record(ok) {
+  quiz.answered = true;
+  quiz.total++;
+  if (ok) { quiz.score++; quiz.streak++; } else quiz.streak = 0;
+  $("qScore").textContent = `Score: ${quiz.score} / ${quiz.total}`;
+  $("qStreak").textContent = `Streak: ${quiz.streak}${quiz.streak >= 5 ? " 🔥" : ""}`;
+}
+
+function checkNumeric() {
+  const v = parseNum($("qInput").value);
+  const fb = $("qFeedback");
+  if (!isFinite(v)) {
+    fb.className = "feedback show info";
+    fb.textContent = "Enter a number (for big numbers use e.g. 3.01e23 or 3.01 x 10^23).";
+    return;
+  }
+  const q = quiz.q;
+  if (close(v, q.answer)) {
+    if (!quiz.answered) record(quiz.tries === 0);
+    fb.className = "feedback show good";
+    fb.innerHTML = `<strong>Correct!</strong>${quiz.tries ? " (on a retry — the score only counts first attempts)" : ""}<div class="working" style="margin-top:6px">${q.working}</div>`;
+    return;
+  }
+  quiz.tries++;
+  if (quiz.tries === 1 && !quiz.answered) record(false);
+  const trap = q.traps.find(t => close(v, t.v));
+  fb.className = "feedback show bad";
+  fb.innerHTML = trap
+    ? `<strong>Not quite.</strong> ${trap.fb} Try again.`
+    : `<strong>Not quite.</strong> Check your working — try the hint. Your answer: ${fmt(v)} ${q.unit}.`;
+}
+
+$("qHint").addEventListener("click", () => {
+  if (!quiz.q || quiz.q.mcq) return;
+  const fb = $("qFeedback");
+  fb.className = "feedback show info";
+  fb.innerHTML = `<strong>Hint:</strong> ${quiz.q.hint}`;
+});
+$("qShow").addEventListener("click", () => {
+  if (!quiz.q || quiz.q.mcq) return;
+  if (!quiz.answered) record(false);
+  const fb = $("qFeedback");
+  fb.className = "feedback show info";
+  fb.innerHTML = `<strong>Solution</strong><div class="working" style="margin-top:6px">${quiz.q.working}</div>`;
+});
+$("qNext").addEventListener("click", newQuestion);
+
+/* ================================================================
+   INIT
+   ================================================================ */
+buildStepper();
+renderStation3();
+renderScale();
+convertFrom("mol");
+newQuestion();
+const saved = parseInt(storeGet("moleExplorer.station"), 10);
+goTo(isFinite(saved) ? saved : 0);
+</script>
+</body>
+</html>
