@@ -183,7 +183,7 @@ These are estimates for a competent team that discusses each answer. A strong te
 - **Type tray:** Slip 1: carbon-14: 14 / 6 / C; Slip 2: chlorine-37: 37 / 17 / Cl; Slip 3: copper-65: 65 / 29 / Cu; Slip 4: an atom with 20 protons…: 44 / 20 / Ca
 - **Proof sheet:** 39K: 19 / 20 / 19; 35Cl−: 17 / 18 / 18; 27Al3+: 13 / 14 / 10; 56Fe2+: 26 / 30 / 24
 - **Rubber stamps:** Proton: +1 / 1 / in the nucleus; Neutron: 0 / 1 / in the nucleus; Electron: −1 / 1/1836 (almost 0) / in energy levels around the nucleus; Isotopes of the same element…: neutrons; An ion forms when an atom gains…: electrons
-- **Rule booklet:** wrong lines: 3 (It only works well for hydrogen (one electron).), 4 (Energy levels are split into subshells: s, p, d,…), 6 (Electrons occupy orbitals — regions where they…), 8 (n = 1 has only the 1s subshell.) ‖ 8 electrons; 2s and 2p
+- **Rule booklet:** wrong lines: 3 (It only works well for hydrogen (one electron).), 4 (Energy levels are split into subshells, such as…), 6 (Electrons occupy orbitals — regions where they…), 8 (n = 1 has only the 1s subshell.) ‖ 8 electrons; 2s and 2p
 
 #### 3. The Wiring Room (Circuit Breakers) — meeple F, digit 8
 - **Fuse box:** 1s → 2s → 2p → 3s → 3p → 4s → 3d ‖ 4s is slightly lower in energy than 3d
