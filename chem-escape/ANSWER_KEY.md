@@ -11,7 +11,7 @@ Teacher Mode (press **T**) can also show these inside each puzzle. Calculations 
 - **Type tray:** Slip 1: carbon-14: 14 / 6 / C; Slip 2: chlorine-37: 37 / 17 / Cl; Slip 3: copper-65: 65 / 29 / Cu; Slip 4: an atom with 20 protons…: 44 / 20 / Ca
 - **Proof sheet:** 39K: 19 / 20 / 19; 35Cl−: 17 / 18 / 18; 27Al3+: 13 / 14 / 10; 56Fe2+: 26 / 30 / 24
 - **Rubber stamps:** Proton: +1 / 1 / in the nucleus; Neutron: 0 / 1 / in the nucleus; Electron: −1 / 1/1836 (almost 0) / in energy levels around the nucleus; Isotopes of the same element…: neutrons; An ion forms when an atom gains…: electrons
-- **Rule booklet:** wrong lines: 3 (It only works well for hydrogen (one electron).), 4 (Energy levels are split into subshells: s, p, d,…), 6 (Electrons occupy orbitals — regions where they…), 8 (n = 2 has only 2s and 2p.) ‖ 32 electrons; 3s, 3p and 3d
+- **Rule booklet:** wrong lines: 3 (It only works well for hydrogen (one electron).), 4 (Energy levels are split into subshells: s, p, d,…), 6 (Electrons occupy orbitals — regions where they…), 8 (n = 2 has only 2s and 2p.) ‖ 18 electrons; 3s, 3p and 3d
 
 ### 3. The Wiring Room (Circuit Breakers) — meeple F, digit 8
 - **Fuse box:** 1s → 2s → 2p → 3s → 3p → 4s → 3d → 4p → 5s ‖ 4s is slightly lower in energy than 3d
@@ -40,14 +40,14 @@ Teacher Mode (press **T**) can also show these inside each puzzle. Calculations 
 
 ### 7. The Design Studio (Shape Shifters) — meeple Al, digit 9
 - **Materials test sheet:** W = Metallic lattice; X = Ionic lattice; Y = Covalent molecular; Z = Covalent network ‖ its ions are held in place in the solid lattice but are free…; layers of positive ions can slide over each other while the…; only weak intermolecular forces between its molecules need to…
-- **Sketchbook:** NH₃: 8 / 3 / 1; H₂O: 8 / 2 / 2; CO₂: 16 / 4 / 4; HCN: 10 / 4 / 1; PCl₃: 26 / 3 / 10 ‖ Sketch A
-- **Shape cards:** Card A = bent (V-shaped); Card B = tetrahedral; Card C = linear; Card D = trigonal pyramidal; Card E = trigonal planar ‖ CH₄: 4 / tetrahedral; NH₃: 4 / trigonal pyramidal; H₂O: 4 / bent (V-shaped); CO₂: 2 / linear; CH₂O (methanal): 3 / trigonal planar
+- **Sketchbook:** NH₃: 8 / 3 / 1; H₂O: 8 / 2 / 2; CO₂: 16 / 4 / 4; CH₄: 8 / 4 / 0; HCl: 8 / 1 / 3 ‖ Sketch A
+- **Shape cards:** Card A = bent (V-shaped); Card B = tetrahedral; Card C = linear; Card D = trigonal pyramidal; Card E = trigonal planar ‖ CH₄: 4 / tetrahedral; NH₃: 4 / trigonal pyramidal; H₂O: 4 / bent (V-shaped); CO₂: 2 / linear; BF₃: 3 / trigonal planar
 - **Polarity compass:** Non-polar covalent (ΔEN < 0.5) = C–H, Cl–Cl; Polar covalent (ΔEN 0.5–1.7) = O–H, N–H, C=O; Ionic (ΔEN > 1.7) = Na–Cl, Mg–O ‖ Polar molecule = H₂O (bent), NH₃ (trigonal pyramidal), CHCl₃ (tetrahedral); Non-polar molecule = CO₂ (linear), CH₄ (tetrahedral), CCl₄ (tetrahedral) ‖ it is linear and symmetrical, so the two bond dipoles point in…
-- **Melting-race board:** F₂ → HCl → H₂O → NaCl ‖ F₂: dispersion forces; HCl: dipole–dipole attractions; H₂O: hydrogen bonding; NaCl: ionic bonding ‖ polar water molecules are attracted to the Na⁺ and Cl⁻ ions…; water molecules attract each other strongly by hydrogen…
+- **Melting-race board:** F₂ → HCl → H₂O → NaCl ‖ F₂: dispersion forces; HCl: dipole–dipole attractions; H₂O: hydrogen bonding; NaCl: ionic bonding ‖ water molecules are polar, so their δ− and δ+ ends attract the…; water molecules attract each other strongly by hydrogen…
 
 ### 8. The Archive (Trend Setters) — meeple P, digit 6
 - **Filing drawer:** Atomic radius ACROSS period 3…: decreases / R1; Atomic radius DOWN group 1 (Li →…: increases / R2; Electronegativity ACROSS period…: increases / R1; Electronegativity DOWN group 17…: decreases / R2; 1st ionisation energy ACROSS a…: increases / R1; 1st ionisation energy DOWN a group: decreases / R2; Na⁺ compared with a Na atom: smaller / R3; Cl⁻ compared with a Cl atom: larger / R4
-- **Trend Setters deck:** K → Na → Mg → S → Cl → Ar ‖ N³⁻ → O²⁻ → F⁻ → Na⁺ → Mg²⁺ → Al³⁺ ‖ They all have 10 electrons, but the number of protons rises…
+- **Trend Setters deck:** K → Na → Mg → S → Cl → Ar ‖ K → Na → Mg → C → N → F ‖ Its bonding electrons are close to the nucleus (only 2…
 - **Rosie’s homework:** wrong lines: 2 (Iodine has more protons; fluorine’s bonding…), 4 (Mg²⁺ is smaller: it has lost its whole outer…), 5 (Atoms get SMALLER across a period; more protons…)
 
 ### Vault

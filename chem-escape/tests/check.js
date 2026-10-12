@@ -213,7 +213,8 @@ function walkPart(part, where, puzzle) {
         ionr: { N: 146, O: 140, F: 133, Na: 102, Mg: 72, Al: 54 },
         bp: { F2: -188, HCl: -85, H2O: 100, NaCl: 1413 }
       };
-      ['ie', 'ionr', 'bp'].forEach(function (k) {
+      DATA.en = {}; part.answer.forEach(function (x) { if (E[x] && E[x].EN != null) DATA.en[x] = E[x].EN; });
+      ['ie', 'ionr', 'bp', 'en'].forEach(function (k) {
         var d = DATA[k];
         if (part.answer.every(function (a) { return d[a] != null; })) {
           for (var i = 1; i < part.answer.length; i++) {

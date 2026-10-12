@@ -150,7 +150,7 @@
       {
         id: 'r1', number: 1, name: 'The Sorting Line', game: 'Sift & Sort!', year: 1952,
         tagline: 'The conveyor-belt race game! Every mixture has its method.',
-        topic: 'Unit 1 Topic 1 — Separation techniques', theme: 'conveyor',
+        topic: 'Year 10 Chemistry — Separating mixtures', theme: 'conveyor',
         award: { symbol: 'Cl', name: 'chlorine', digit: 3, color: '#2f7f7a' },
         puzzles: [
           { // BUDGET 1.5 min — matching technique + justification (conceptual)
@@ -255,7 +255,7 @@
       {
         id: 'r2', number: 2, name: 'The Print Shop', game: 'Typesetter’s Tangle', year: 1956,
         tagline: 'The letterpress tile game! Set your type before the ink dries.',
-        topic: 'Unit 1 Topic 2 — Atomic structure', theme: 'letterpress',
+        topic: 'Year 10 Chemistry — Atomic structure', theme: 'letterpress',
         award: { symbol: 'Na', name: 'sodium', digit: 7, color: '#d9a53b' },
         puzzles: [
           { // BUDGET 1.5 min — input values from periodic table (calculation-lite)
@@ -336,14 +336,14 @@
                 { text: 'The second energy level (n = 2) contains s, p and d subshells.', error: true, fix: 'n = 2 has only 2s and 2p.' }
               ] },
               { type: 'fields', fields: [
-                num('Maximum number of electrons in the n = 4 energy level', 32, 'electrons', { tol: 0, verify: { fn: 'shellMax', n: 4 }, wrong: 'Add up the subshells in n = 4: 4s + 4p + 4d + 4f (or use 2n²).' }),
+                num('Maximum number of electrons in the n = 3 energy level', 18, 'electrons', { tol: 0, verify: { fn: 'shellMax', n: 3 }, wrong: 'Add up the subshells in n = 3: 3s + 3p + 3d.' }),
                 sel('Which subshells make up the n = 3 energy level?', '3s, 3p and 3d', ['3s and 3p only', '3s, 3p, 3d and 3f', '3s only'])
               ] }
             ],
             hints: [
               'Bert’s log, 1961: “Salesman says the Bohr model explains everything. Mrs T laughed so hard she spilled her tea. Said it’s ‘lovely for hydrogen and hopeless for everything else’.”',
               'The Bohr model is too simple: it only works for one-electron atoms, it treats electrons as planets on circular paths, and it ignores subshells. Level n contains n kinds of subshell (n = 1: s; n = 2: s, p; n = 3: s, p, d; n = 4: s, p, d, f).',
-              'Worked step: the line about predicting the spectra of EVERY element is wrong — Bohr only works for hydrogen. Check the n = 2 line against “level n contains n kinds of subshell”. For n = 4: 2 + 6 + 10 + 14 = ?'
+              'Worked step: the line about predicting the spectra of EVERY element is wrong — Bohr only works for hydrogen. Check the n = 2 line against “level n contains n kinds of subshell”. For n = 3: 3s + 3p + 3d = 2 + 6 + 10 = ?'
             ]
           }
         ]
@@ -353,7 +353,7 @@
       {
         id: 'r3', number: 3, name: 'The Wiring Room', game: 'Circuit Breakers', year: 1963,
         tagline: 'The electric fuse-box game! Don’t blow a fuse.',
-        topic: 'Unit 1 Topic 2 — Electron configurations', theme: 'circuit',
+        topic: 'Year 10 Chemistry — Electron configurations', theme: 'circuit',
         award: { symbol: 'F', name: 'fluorine', digit: 8, color: '#7b8a3a' },
         puzzles: [
           { // BUDGET 1 min — sorting (Aufbau order)
@@ -372,7 +372,7 @@
             ],
             hints: [
               'Bert’s log, 1963: “Wired the new panel. Mrs T made me fit the fuses in ‘Aufbau order’. I said ‘Bless you.’ She did not laugh.”',
-              'Aufbau: electrons fill the lowest-energy subshell first. The order is 1s 2s 2p 3s 3p 4s 3d 4p 5s… (Energy rises with n + l: 4s (4 + 0) is lower than 3d (3 + 2).)',
+              'Aufbau: electrons fill the lowest-energy subshell first. The order is 1s 2s 2p 3s 3p 4s 3d 4p 5s… 4s is slightly lower in energy than 3d, so it fills first.',
               'Worked step: the first five are 1s, 2s, 2p, 3s, 3p. The tricky one is next: 4s comes BEFORE 3d.'
             ]
           },
@@ -444,7 +444,7 @@
       {
         id: 'r4', number: 4, name: 'The Dye & Paint Room', game: 'Colour Me Curious', year: 1968,
         tagline: 'The paint-mixing card game! Mix it, match it, make it.',
-        topic: 'Unit 1 Topic 3 — Nature of substances', theme: 'paint',
+        topic: 'Year 10 Chemistry — Elements, compounds & mixtures', theme: 'paint',
         award: { symbol: 'Mg', name: 'magnesium', digit: 1, color: '#b5482f' },
         puzzles: [
           { // BUDGET 2 min — classify particle diagrams + definitions + metallic bonding (conceptual)
@@ -562,7 +562,7 @@
       {
         id: 'r5', number: 5, name: 'The Moulding Floor', game: 'Melt Down!', year: 1971,
         tagline: 'The press-and-mould game! Pour it, press it, pop it out.',
-        topic: 'Unit 2 Topic 1 — Equations for neutral species', theme: 'mould',
+        topic: 'Year 10 Chemistry — Chemical reactions & equations', theme: 'mould',
         award: { symbol: 'K', name: 'potassium', digit: 4, color: '#7a4a6b' },
         puzzles: [
           { // BUDGET 1 min — evidence of reaction (conceptual sorting)
@@ -680,7 +680,7 @@
       {
         id: 'r6', number: 6, name: 'Quality Control & Shipping', game: 'Special Delivery', year: 1977,
         tagline: 'The shipping-dockets game! Count it, weigh it, ship it.',
-        topic: 'Unit 2 Topic 2 — Stoichiometry', theme: 'shipping',
+        topic: 'Year 10 Chemistry — The mole & calculations', theme: 'shipping',
         award: { symbol: 'Si', name: 'silicon', digit: 2, color: '#2c3e5c' },
         puzzles: [
           { // BUDGET 2 min — mole calculations with unit conversions
@@ -769,7 +769,7 @@
       {
         id: 'r7', number: 7, name: 'The Design Studio', game: 'Shape Shifters', year: 1982,
         tagline: 'The sculpting-and-design game! Every shape has its reasons.',
-        topic: 'Unit 3 Topic 1 — Bonding and molecules', theme: 'drafting',
+        topic: 'Year 10 Chemistry — Bonding & molecules', theme: 'drafting',
         award: { symbol: 'Al', name: 'aluminium', digit: 9, color: '#6aa3b5' },
         puzzles: [
           { // BUDGET 2 min — logic grid + conceptual explanations
@@ -807,8 +807,8 @@
                   { label: 'NH₃', cells: lewis(8, 3, 1, 'NH3') },
                   { label: 'H₂O', cells: lewis(8, 2, 2, 'H2O') },
                   { label: 'CO₂', cells: lewis(16, 4, 4, 'CO2') },
-                  { label: 'HCN', cells: lewis(10, 4, 1, 'HCN') },
-                  { label: 'PCl₃', cells: lewis(26, 3, 10, 'PCl3') }
+                  { label: 'CH₄', cells: lewis(8, 4, 0, 'CH4') },
+                  { label: 'HCl', cells: lewis(8, 1, 3, 'HCl') }
                 ] },
               { type: 'fields', fig: { name: 'lewisChoices' }, fields: [
                 sel('Which sketch is the correct Lewis structure of CO₂?', 'Sketch A', ['Sketch B', 'Sketch C'], { why: { 'Sketch B': 'Count the electrons in Sketch B: it uses 20, but CO₂ only has 16 valence electrons.', 'Sketch C': 'In Sketch C, carbon is surrounded by 5 pairs — more than an octet.' } })
@@ -816,8 +816,8 @@
             ],
             hints: [
               'Bert’s log, 1983: “Molecule Meeples prototype. Mrs T counted dots on every sketch. ‘Every atom wants eight, Bert — except hydrogen, who is happy with two.’”',
-              'Valence electrons = the last digit of the group number (H 1, C 4, N 5, O 6, Cl 7, P 5). Add them up and halve to get the total pairs. Bonding pairs = the number of bonds (double = 2). Lone pairs = total pairs − bonding pairs.',
-              'Worked step: NH₃ → 5 + 3 × 1 = 8 electrons = 4 pairs. Three N–H bonds = 3 bonding pairs, so 1 lone pair. PCl₃ → 5 + 3 × 7 = 26 electrons = 13 pairs; 3 bonds, so 10 lone pairs.'
+              'Valence electrons = the last digit of the group number (H 1, C 4, N 5, O 6, Cl 7). Add them up and halve to get the total pairs. Bonding pairs = the number of bonds (double = 2). Lone pairs = total pairs − bonding pairs.',
+              'Worked step: NH₃ → 5 + 3 × 1 = 8 electrons = 4 pairs. Three N–H bonds = 3 bonding pairs, so 1 lone pair. HCl → 1 + 7 = 8 electrons = 4 pairs; 1 bond, so 3 lone pairs (all on Cl).'
             ]
           },
           { // BUDGET 2 min — VSEPR names + diagrams
@@ -844,7 +844,7 @@
                   { label: 'NH₃', cells: [exact('groups', 4), shapeSel('trigonal pyramidal')] },
                   { label: 'H₂O', cells: [exact('groups', 4), shapeSel('bent (V-shaped)')] },
                   { label: 'CO₂', cells: [exact('groups', 2, { wrong: 'A double bond counts as ONE electron group.' }), shapeSel('linear')] },
-                  { label: 'CH₂O (methanal)', cells: [exact('groups', 3, { wrong: 'A double bond counts as ONE electron group.' }), shapeSel('trigonal planar')] }
+                  { label: 'BF₃', cells: [exact('groups', 3, { wrong: 'Boron has 3 bonding pairs and no lone pairs.' }), shapeSel('trigonal planar')] }
                 ] }
             ],
             hints: [
@@ -906,7 +906,7 @@
                   { label: 'NaCl', cells: [imfSel('ionic bonding')] }
                 ] },
               { type: 'fields', fields: [
-                sel('Salt (NaCl) dissolves in water because…', 'polar water molecules are attracted to the Na⁺ and Cl⁻ ions (ion–dipole attraction), surrounding them and pulling them out of the lattice', ['the water melts the salt crystals', 'NaCl molecules form hydrogen bonds with water', 'the ions react with water to make new substances']),
+                sel('Salt (NaCl) dissolves in water because…', 'water molecules are polar, so their δ− and δ+ ends attract the Na⁺ and Cl⁻ ions and pull them out of the crystal', ['the water melts the salt crystals', 'NaCl molecules form hydrogen bonds with water', 'the ions react with water to make new substances']),
                 sel('Candle wax (non-polar) does not dissolve in water because…', 'water molecules attract each other strongly by hydrogen bonding and wax can’t form attractions that strong with water', ['wax molecules are too big to fit between water molecules', 'wax is an ionic compound', 'wax has a higher boiling point than water'])
               ] }
             ],
@@ -923,7 +923,7 @@
       {
         id: 'r8', number: 8, name: 'The Archive', game: 'Trend Setters', year: 1987,
         tagline: 'The card-filing game! File it right and the trend is your friend.',
-        topic: 'Unit 3 Topic 2 — Periodicity', theme: 'archive',
+        topic: 'Year 10 Chemistry — The periodic table & trends', theme: 'archive',
         award: { symbol: 'P', name: 'phosphorus', digit: 6, color: '#d27d6a' },
         puzzles: [
           { // BUDGET 2.5 min — trend + explanation matching (conceptual)
@@ -948,7 +948,7 @@
               'Worked step: atomic radius across period 3 → decreases, because of R1 (more protons, same shell). Ionisation energy down a group → decreases, because of R2 (the outer electron is further out and more shielded, so it’s easier to remove).'
             ]
           },
-          { // BUDGET 1.5 min — ranking (IE, isoelectronic ionic radius)
+          { // BUDGET 1.5 min — ranking (ionisation energy, electronegativity)
             id: 'r8-rank', budget: 1.5,
             prop: { kind: 'tuckbox', name: 'Trend Setters deck', sub: 'two hands to sort', front: 'The game deck. Two hands of element cards are clipped together with a note: “Sort each hand — this is how you win the game.”', flip: 'Unclip the two hands' },
             title: 'Sort the hands',
@@ -958,18 +958,18 @@
                 items: ['K', 'Na', 'Mg', 'S', 'Cl', 'Ar'].map(function (s) { return { id: s, label: s }; }),
                 answer: ['K', 'Na', 'Mg', 'S', 'Cl', 'Ar'],
                 rules: [{ a: 'K', b: 'Na', msg: 'K’s outer electron is in the 4th shell, further out and more shielded than Na’s, so it’s easier to remove.' }, { a: 'Cl', b: 'Ar', msg: 'Noble gases have the highest ionisation energy in their period.' }] },
-              { type: 'order', heading: 'Hand 2 — ionic radius (all have 10 electrons)', topLabel: 'LARGEST ion', bottomLabel: 'SMALLEST ion',
-                items: [{ id: 'N', label: 'N³⁻' }, { id: 'O', label: 'O²⁻' }, { id: 'F', label: 'F⁻' }, { id: 'Na', label: 'Na⁺' }, { id: 'Mg', label: 'Mg²⁺' }, { id: 'Al', label: 'Al³⁺' }],
-                answer: ['N', 'O', 'F', 'Na', 'Mg', 'Al'],
-                rules: [{ a: 'F', b: 'Na', msg: 'F⁻ and Na⁺ have the same 10 electrons, but Na⁺ has 11 protons pulling on them (F⁻ has 9), so Na⁺ is smaller.' }] },
+              { type: 'order', heading: 'Hand 2 — electronegativity', topLabel: 'LOWEST electronegativity', bottomLabel: 'HIGHEST',
+                items: ['K', 'Na', 'Mg', 'C', 'N', 'F'].map(function (x) { return { id: x, label: x }; }),
+                answer: ['K', 'Na', 'Mg', 'C', 'N', 'F'],
+                rules: [{ a: 'K', b: 'Na', msg: 'Electronegativity decreases DOWN a group, so K (period 4) is lower than Na (period 3).' }, { a: 'N', b: 'F', msg: 'Fluorine is the most electronegative element of all.' }] },
               { type: 'fields', fields: [
-                sel('Why does ionic radius fall from N³⁻ to Al³⁺?', 'They all have 10 electrons, but the number of protons rises from 7 to 13, pulling the same electrons in more tightly', ['The ions get heavier, so they shrink', 'They have fewer electron shells', 'Positive ions always have more electrons'])
+                sel('Why is fluorine the most electronegative element?', 'Its bonding electrons are close to the nucleus (only 2 shells), with little shielding and the most protons in its period', ['It has the most electrons of any element', 'It is the heaviest non-metal', 'It has a full outer shell'])
               ] }
             ],
             hints: [
               'Bert’s log, 1988: “Rosie beat me at Trend Setters nine times in a row. Her secret: ‘Count the shells first, Bert, THEN the protons.’”',
-              'Ionisation energy increases across a period and decreases down a group. The noble gas is the highest in its period; a period 4 metal is lowest. For ions with the same number of electrons (isoelectronic), more protons means a smaller ion.',
-              'Worked step: K (period 4, group 1) is lowest, then Na (period 3, group 1). Across period 3, Mg < S < Cl < Ar. Hand 2: N³⁻ has only 7 protons holding 10 electrons, so it’s the largest.'
+              'Ionisation energy increases across a period and decreases down a group. The noble gas is the highest in its period; a period 4 metal is lowest. Electronegativity follows the same pattern: up and to the right (fluorine) is highest.',
+              'Worked step: K (period 4, group 1) is lowest, then Na (period 3, group 1). Across period 3, Mg < S < Cl < Ar. Hand 2: K is lowest, then Na, then across the table to F.'
             ]
           },
           { // BUDGET 1.5 min — spot-the-error explanations
@@ -1008,7 +1008,7 @@
   }
   function lewis(ve, bp, lp, f) {
     return [
-      exact('valence e⁻', ve, { wrong: 'Add up the valence electrons: H 1, C 4, N 5, P 5, O 6, Cl 7.', verify: { fn: 'valence', f: f } }),
+      exact('valence e⁻', ve, { wrong: 'Add up the valence electrons: H 1, C 4, N 5, O 6, Cl 7.', verify: { fn: 'valence', f: f } }),
       exact('bonding pairs', bp, { wrong: 'Count bonds: single = 1 pair, double = 2, triple = 3.', verify: { fn: 'lewis', f: f, ve: ve, bp: bp, lp: lp } }),
       exact('lone pairs', lp, { wrong: 'Lone pairs = (total valence electrons ÷ 2) − bonding pairs.' })
     ];
