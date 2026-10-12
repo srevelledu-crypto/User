@@ -237,7 +237,7 @@
       var key = mm[1] + mm[2];
       if (subs[key] != null) return { error: 'You’ve written ' + key + ' twice.' };
       subs[key] = parseInt(digits, 10); order.push(key);
-      if (i < t.length && /\d/.test(t[i]) && !/[spdf]/.test(t[i + 1] || '')) return { error: 'A ' + mm[2] + ' subshell holds at most ' + max + ' electrons (s 2, p 6, d 10, f 14).' };
+      if (i < t.length && /\d/.test(t[i]) && !/[spdf]/.test(t[i + 1] || '')) return { error: 'A ' + mm[2] + ' subshell holds at most ' + max + ' electrons.' };
     }
     return { core: core, subs: subs, order: order };
   }
@@ -257,7 +257,7 @@
     var p = parseConfig(input);
     if (p.error) return { ok: false, msg: p.error };
     var want = parseConfig(field.answer), wantFull = expandConfig(want), got = expandConfig(p);
-    for (var k in p.subs) if (p.subs[k] > CAP[k[1]]) return { ok: false, msg: 'A ' + k[1] + ' subshell holds at most ' + CAP[k[1]] + ' electrons (s 2, p 6, d 10, f 14).' };
+    for (var k in p.subs) if (p.subs[k] > CAP[k[1]]) return { ok: false, msg: 'A ' + k[1] + ' subshell holds at most ' + CAP[k[1]] + ' electrons.' };
     if (sameCounts(got, wantFull)) {
       if (field.condensed && !p.core) return { ok: false, msg: 'Right electrons! But this box wants the condensed form: start with the previous noble gas in square brackets, e.g. [Ne]3s².' };
       if (field.condensed && p.core !== want.core) return { ok: false, msg: 'Use the nearest noble gas BEFORE the element as the core (here: [' + want.core + ']).' };

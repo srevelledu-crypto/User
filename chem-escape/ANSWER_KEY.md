@@ -11,13 +11,13 @@ Teacher Mode (press **T**) can also show these inside each puzzle. Calculations 
 - **Type tray:** Slip 1: carbon-14: 14 / 6 / C; Slip 2: chlorine-37: 37 / 17 / Cl; Slip 3: copper-65: 65 / 29 / Cu; Slip 4: an atom with 20 protons…: 44 / 20 / Ca
 - **Proof sheet:** 39K: 19 / 20 / 19; 35Cl−: 17 / 18 / 18; 27Al3+: 13 / 14 / 10; 56Fe2+: 26 / 30 / 24
 - **Rubber stamps:** Proton: +1 / 1 / in the nucleus; Neutron: 0 / 1 / in the nucleus; Electron: −1 / 1/1836 (almost 0) / in energy levels around the nucleus; Isotopes of the same element…: neutrons; An ion forms when an atom gains…: electrons
-- **Rule booklet:** wrong lines: 3 (It only works well for hydrogen (one electron).), 4 (Energy levels are split into subshells: s, p, d,…), 6 (Electrons occupy orbitals — regions where they…), 8 (n = 2 has only 2s and 2p.) ‖ 18 electrons; 3s, 3p and 3d
+- **Rule booklet:** wrong lines: 3 (It only works well for hydrogen (one electron).), 4 (Energy levels are split into subshells: s, p, d,…), 6 (Electrons occupy orbitals — regions where they…), 8 (n = 1 has only the 1s subshell.) ‖ 8 electrons; 2s and 2p
 
 ### 3. The Wiring Room (Circuit Breakers) — meeple F, digit 8
-- **Fuse box:** 1s → 2s → 2p → 3s → 3p → 4s → 3d → 4p → 5s ‖ 4s is slightly lower in energy than 3d
-- **Junction boxes:** 1s² 2s² 2p⁶ 3s² 3p⁴; [Ar] 4s²; 1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d⁶; [Ar] 4s² 3d¹⁰ 4p⁵; 1s² 2s² 2p⁶ 3s² 3p⁶
-- **Wiring panel:** Nitrogen 1s² 2s² 2p³; Oxygen 1s² 2s² 2p⁴; Iron 4s² 3d⁶ (singles ↑ first, then pair ↓)
-- **Faulty-circuit tags:** wrong lines: 2 ([Ar] 3d³ 4s²), 3 ([Ar] 3d⁵ 4s¹), 5 ([Ar] 3d¹⁰ 4s¹) ‖ [Ar] 3d⁵ 4s¹; [Ar] 3d¹⁰ 4s¹; A half-full or completely full d subshell is extra stable, so…
+- **Fuse box:** 1s → 2s → 2p → 3s → 3p → 4s → 3d ‖ 4s is slightly lower in energy than 3d
+- **Junction boxes:** 1s² 2s² 2p⁶ 3s² 3p⁴; [Ar] 4s²; [Ne] 3s² 3p³; 1s² 2s² 2p⁶; 1s² 2s² 2p⁶ 3s² 3p⁶
+- **Wiring panel:** Nitrogen 1s² 2s² 2p³; Oxygen 1s² 2s² 2p⁴; Silicon 3s² 3p² (singles ↑ first, then pair ↓)
+- **Faulty-circuit tags:** wrong lines: 2 ([Ne] 3s²), 3 ([Ar] 3d⁵ 4s¹), 7 ([Ar] 3d¹⁰ 4s¹) ‖ [Ar] 3d⁵ 4s¹; [Ar] 3d¹⁰ 4s¹; A half-full or completely full d subshell is extra stable, so…
 
 ### 4. The Dye & Paint Room (Colour Me Curious) — meeple Mg, digit 1
 - **Particle cards:** Element = Card 1 (identical single atoms), Card 2 (identical diatomic…, Card 7 (lattice of identical +…; Compound = Card 3 (identical molecules of…, Card 6 (lattice of alternating +…; Mixture = Card 4 (single atoms + diatomic…, Card 5 (compound molecules +… ‖ Atom = the smallest particle of an…; Molecule = two or more non-metal atoms…; Ion = an atom or group of atoms with…; Element = a pure substance made of only…; Compound = a pure substance of two or more…; Mixture = two or more substances… ‖ Metallic bonding: a lattice of positive ions in a sea of…

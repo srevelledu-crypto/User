@@ -330,20 +330,20 @@
                 { text: 'An electron can jump to a higher energy level by absorbing a specific amount of energy.', error: false },
                 { text: 'The Bohr model accurately predicts the line spectra of every element.', error: true, fix: 'It only works well for hydrogen (one electron).' },
                 { text: 'Each energy level is a single orbit with no internal structure.', error: true, fix: 'Energy levels are split into subshells: s, p, d, f.' },
-                { text: 'An s subshell holds 2 electrons, p holds 6, d holds 10 and f holds 14.', error: false },
+                { text: 'An s subshell holds 2 electrons and a p subshell holds 6.', error: false },
                 { text: 'Electrons travel in neat circular paths, so we always know exactly where an electron is.', error: true, fix: 'Electrons occupy orbitals — regions where they are likely to be found.' },
                 { text: 'Higher energy levels are, on average, further from the nucleus.', error: false },
-                { text: 'The second energy level (n = 2) contains s, p and d subshells.', error: true, fix: 'n = 2 has only 2s and 2p.' }
+                { text: 'The first energy level (n = 1) contains an s subshell and a p subshell.', error: true, fix: 'n = 1 has only the 1s subshell.' }
               ] },
               { type: 'fields', fields: [
-                num('Maximum number of electrons in the n = 3 energy level', 18, 'electrons', { tol: 0, verify: { fn: 'shellMax', n: 3 }, wrong: 'Add up the subshells in n = 3: 3s + 3p + 3d.' }),
-                sel('Which subshells make up the n = 3 energy level?', '3s, 3p and 3d', ['3s and 3p only', '3s, 3p, 3d and 3f', '3s only'])
+                num('Maximum number of electrons in the n = 2 energy level', 8, 'electrons', { tol: 0, verify: { fn: 'shellMax', n: 2 }, wrong: 'Add up the subshells in n = 2: 2s + 2p.' }),
+                sel('Which subshells make up the n = 2 energy level?', '2s and 2p', ['2s only', '2p only', '2s, 2p and 2d'])
               ] }
             ],
             hints: [
               'Bert’s log, 1961: “Salesman says the Bohr model explains everything. Mrs T laughed so hard she spilled her tea. Said it’s ‘lovely for hydrogen and hopeless for everything else’.”',
-              'The Bohr model is too simple: it only works for one-electron atoms, it treats electrons as planets on circular paths, and it ignores subshells. Level n contains n kinds of subshell (n = 1: s; n = 2: s, p; n = 3: s, p, d; n = 4: s, p, d, f).',
-              'Worked step: the line about predicting the spectra of EVERY element is wrong — Bohr only works for hydrogen. Check the n = 2 line against “level n contains n kinds of subshell”. For n = 3: 3s + 3p + 3d = 2 + 6 + 10 = ?'
+              'The Bohr model is too simple: it only works for one-electron atoms, it treats electrons as planets on circular paths, and it ignores subshells. Energy levels are split into subshells: the first level has only 1s; the second has 2s and 2p; the third starts with 3s and 3p. s holds 2 electrons, p holds 6.',
+              'Worked step: the line about predicting the spectra of EVERY element is wrong — Bohr only works for hydrogen. Now check the n = 1 line: does the first level have a p subshell? For n = 2: 2s + 2p = 2 + 6 = ?'
             ]
           }
         ]
@@ -358,21 +358,21 @@
         puzzles: [
           { // BUDGET 1 min — sorting (Aufbau order)
             id: 'r3-fuses', budget: 1,
-            prop: { kind: 'panel', name: 'Fuse box', sub: 'nine loose fuses', front: 'A tin fuse box with nine fuses rattling about inside. Painted on the lid: “Fit fuses in the order they fill — lowest energy first.”', flip: 'Open the lid' },
+            prop: { kind: 'panel', name: 'Fuse box', sub: 'seven loose fuses', front: 'A tin fuse box with seven fuses rattling about inside. Painted on the lid: “Fit fuses in the order they fill — lowest energy first.”', flip: 'Open the lid' },
             title: 'Fit the fuses',
             intro: 'Put the subshell fuses in the order electrons fill them (lowest energy at the top). Drag them, or use the ▲ ▼ buttons.',
             parts: [
               { type: 'order', topLabel: 'fills FIRST (lowest energy)', bottomLabel: 'fills LAST',
-                items: ['1s', '2s', '2p', '3s', '3p', '4s', '3d', '4p', '5s'].map(function (s) { return { id: s, label: s }; }),
-                answer: ['1s', '2s', '2p', '3s', '3p', '4s', '3d', '4p', '5s'],
-                rules: [{ a: '4s', b: '3d', msg: 'Fuse blown! 4s is slightly lower in energy than 3d, so it fills first.' }, { a: '3d', b: '4p', msg: 'Fuse blown! 3d fills before 4p.' }, { a: '2p', b: '3s', msg: 'Fuse blown! A shell’s p subshell fills before the next shell’s s.' }] },
+                items: ['1s', '2s', '2p', '3s', '3p', '4s', '3d'].map(function (s) { return { id: s, label: s }; }),
+                answer: ['1s', '2s', '2p', '3s', '3p', '4s', '3d'],
+                rules: [{ a: '4s', b: '3d', msg: 'Fuse blown! 4s is slightly lower in energy than 3d, so it fills first.' }, { a: '2p', b: '3s', msg: 'Fuse blown! A shell’s p subshell fills before the next shell’s s.' }] },
               { type: 'fields', fields: [
-                sel('So why does 4s fill before 3d?', '4s is slightly lower in energy than 3d', ['4s is in a lower shell than 3d', 'd subshells only fill after f subshells', 's subshells always fill before everything else in every shell'])
+                sel('So why does 4s fill before 3d?', '4s is slightly lower in energy than 3d', ['4s is in a lower shell than 3d', '4s holds more electrons than 3d', 's subshells always fill before everything else in every shell'])
               ] }
             ],
             hints: [
               'Bert’s log, 1963: “Wired the new panel. Mrs T made me fit the fuses in ‘Aufbau order’. I said ‘Bless you.’ She did not laugh.”',
-              'Aufbau: electrons fill the lowest-energy subshell first. The order is 1s 2s 2p 3s 3p 4s 3d 4p 5s… 4s is slightly lower in energy than 3d, so it fills first.',
+              'Aufbau: electrons fill the lowest-energy subshell first. The order is 1s 2s 2p 3s 3p 4s 3d. 4s is slightly lower in energy than 3d, so it fills first.',
               'Worked step: the first five are 1s, 2s, 2p, 3s, 3p. The tricky one is next: 4s comes BEFORE 3d.'
             ]
           },
@@ -384,14 +384,14 @@
             parts: [{ type: 'fields', fields: [
               cfg('Box 1 — sulfur, S (full)', '1s2 2s2 2p6 3s2 3p4', { verify: { fn: 'config', sym: 'S' } }),
               cfg('Box 2 — calcium, Ca (condensed)', '[Ar] 4s2', { condensed: true, verify: { fn: 'config', sym: 'Ca' } }),
-              cfg('Box 3 — iron, Fe (full)', '1s2 2s2 2p6 3s2 3p6 4s2 3d6', { verify: { fn: 'config', sym: 'Fe' } }),
-              cfg('Box 4 — bromine, Br (condensed)', '[Ar] 4s2 3d10 4p5', { condensed: true, verify: { fn: 'config', sym: 'Br' } }),
+              cfg('Box 3 — phosphorus, P (condensed)', '[Ne] 3s2 3p3', { condensed: true, verify: { fn: 'config', sym: 'P' } }),
+              cfg('Box 4 — the oxide ion, O²⁻ (full)', '1s2 2s2 2p6', { ion: true, verify: { fn: 'config', sym: 'O', charge: -2 }, traps: [{ value: '1s2 2s2 2p4', msg: 'That’s the neutral oxygen atom. O²⁻ has GAINED two electrons.' }] }),
               cfg('Box 5 — the potassium ion, K⁺ (full)', '1s2 2s2 2p6 3s2 3p6', { ion: true, verify: { fn: 'config', sym: 'K', charge: 1 }, traps: [{ value: '1s2 2s2 2p6 3s2 3p6 4s1', msg: 'That’s the neutral potassium atom. K⁺ has LOST its outer electron.' }] })
             ] }],
             hints: [
               'Bert’s log, 1964: “Labelled the junction boxes. Mrs T checked every one by adding up the little numbers. ‘They must come to the atomic number, Bert, or the factory burns down.’ (It did not.)”',
-              'Fill in Aufbau order (1s 2s 2p 3s 3p 4s 3d 4p) with s = 2, p = 6, d = 10. The little numbers must add up to the number of electrons. Condensed: replace everything up to the previous noble gas with [He], [Ne] or [Ar].',
-              'Worked step: S has 16 electrons → 1s² 2s² 2p⁶ 3s² 3p⁴ (2 + 2 + 6 + 2 + 4 = 16). For Ca, argon has the first 18 electrons, so Ca is [Ar] then 2 more. K⁺ has 19 − 1 = 18 electrons.'
+              'Fill in Aufbau order (1s 2s 2p 3s 3p 4s) with s = 2 and p = 6. The little numbers must add up to the number of electrons. Condensed: replace everything up to the previous noble gas with [He], [Ne] or [Ar].',
+              'Worked step: S has 16 electrons → 1s² 2s² 2p⁶ 3s² 3p⁴ (2 + 2 + 6 + 2 + 4 = 16). For Ca, argon has the first 18 electrons, so Ca is [Ar] then 2 more. K⁺ has 19 − 1 = 18 electrons; O²⁻ has 8 + 2 = 10.'
             ]
           },
           { // BUDGET 2 min — orbital diagram builder with Hund/Pauli feedback
@@ -402,28 +402,28 @@
             parts: [{ type: 'orbital', diagrams: [
               { id: 'N', label: 'Nitrogen (Z = 7)', subshells: [{ name: '1s', boxes: 1 }, { name: '2s', boxes: 1 }, { name: '2p', boxes: 3 }], expect: { '1s': 2, '2s': 2, '2p': 3 }, verify: { fn: 'orbital', sym: 'N' } },
               { id: 'O', label: 'Oxygen (Z = 8)', subshells: [{ name: '1s', boxes: 1 }, { name: '2s', boxes: 1 }, { name: '2p', boxes: 3 }], expect: { '1s': 2, '2s': 2, '2p': 4 }, verify: { fn: 'orbital', sym: 'O' } },
-              { id: 'Fe', label: 'Iron (Z = 26): [Ar] + …', core: '[Ar]', subshells: [{ name: '4s', boxes: 1 }, { name: '3d', boxes: 5 }], expect: { '4s': 2, '3d': 6 }, verify: { fn: 'orbital', sym: 'Fe', core: 'Ar' } }
+              { id: 'Si', label: 'Silicon (Z = 14): [Ne] + …', core: '[Ne]', subshells: [{ name: '3s', boxes: 1 }, { name: '3p', boxes: 3 }], expect: { '3s': 2, '3p': 2 }, verify: { fn: 'orbital', sym: 'Si', core: 'Ne' } }
             ] }],
             hints: [
               'Bert’s log, 1965: “Mrs T calls it the bus-seat rule: on a bus, nobody sits next to a stranger while there’s still an empty double seat. Electrons are the same.”',
-              'Aufbau: fill lower-energy subshells first. Pauli: at most 2 electrons per box, with opposite spins (↑↓). Hund: in a p or d subshell, put one ↑ in every box before pairing any.',
+              'Aufbau: fill lower-energy subshells first. Pauli: at most 2 electrons per box, with opposite spins (↑↓). Hund: in a p subshell, put one ↑ in every box before pairing any.',
               'Worked step: nitrogen 1s² 2s² 2p³ → 1s ↑↓, 2s ↑↓, then 2p gets ONE ↑ in each of its three boxes. Oxygen has one more electron: it pairs up (↓) in the first 2p box.'
             ]
           },
           { // BUDGET 2 min — spot-the-error (Cr/Cu exceptions) + configs
             id: 'r3-faults', budget: 2,
-            prop: { kind: 'receipt', name: 'Faulty-circuit tags', sub: 'stamped REJECT', front: 'A bundle of brown cardboard tags on a string, each with a transition metal and its “standard wiring”. Some are stamped REJECT in red, but the stamp has smudged.', flip: 'Untie the bundle' },
+            prop: { kind: 'receipt', name: 'Faulty-circuit tags', sub: 'stamped REJECT', front: 'A bundle of brown cardboard tags on a string, each with an element and its “standard wiring”. Some are stamped REJECT in red, but the stamp has smudged.', flip: 'Untie the bundle' },
             title: 'Find the faulty circuits',
             intro: 'Exactly THREE of these “standard wirings” are faulty. Flag them, then fix the two famous exceptions.',
             parts: [
               { type: 'spot', count: 3, lines: [
-                { text: 'Sc: [Ar] 3d¹ 4s²', error: false, check: 'Sc' },
-                { text: 'V: [Ar] 3d⁵', error: true, fix: '[Ar] 3d³ 4s²', check: 'V' },
+                { text: 'Na: [Ne] 3s¹', error: false, check: 'Na' },
+                { text: 'Mg: [Ne] 3s¹', error: true, fix: '[Ne] 3s²', check: 'Mg' },
                 { text: 'Cr: [Ar] 3d⁴ 4s²', error: true, fix: '[Ar] 3d⁵ 4s¹', check: 'Cr' },
-                { text: 'Mn: [Ar] 3d⁵ 4s²', error: false, check: 'Mn' },
-                { text: 'Cu: [Ar] 3d⁹ 4s²', error: true, fix: '[Ar] 3d¹⁰ 4s¹', check: 'Cu' },
-                { text: 'Zn: [Ar] 3d¹⁰ 4s²', error: false, check: 'Zn' },
-                { text: 'Ga: [Ar] 3d¹⁰ 4s² 4p¹', error: false, check: 'Ga' }
+                { text: 'Cl: [Ne] 3s² 3p⁵', error: false, check: 'Cl' },
+                { text: 'K: [Ar] 4s¹', error: false, check: 'K' },
+                { text: 'Ca: [Ar] 4s²', error: false, check: 'Ca' },
+                { text: 'Cu: [Ar] 3d⁹ 4s²', error: true, fix: '[Ar] 3d¹⁰ 4s¹', check: 'Cu' }
               ] },
               { type: 'fields', fields: [
                 cfg('Correct wiring for chromium, Cr (condensed)', '[Ar] 3d5 4s1', { condensed: true, verify: { fn: 'config', sym: 'Cr' }, traps: [{ value: '[Ar] 3d4 4s2', msg: 'That’s the “expected” one, but chromium is an exception. Moving one electron makes the d subshell exactly half full.' }] }),
@@ -433,8 +433,8 @@
             ],
             hints: [
               'Bert’s log, 1966: “Two circuits always trip: number 24 and number 29. Mrs T says they ‘borrow from 4s to tidy up 3d’. Rosie’s grandpa called them the cheaters.”',
-              'Check each tag: do the electrons add up to Z (Ar = 18)? Does it follow Aufbau (4s² before 3d)? Then remember the two exceptions: Cr and Cu move one 4s electron into 3d to get a half-full (d⁵) or full (d¹⁰) subshell.',
-              'Worked step: V is element 23, so it needs 23 − 18 = 5 electrons after [Ar]. Those go 4s² then 3d³, so “[Ar] 3d⁵” is faulty. Cr (24) would “expect” 3d⁴ 4s² but is actually [Ar] 3d⁵ 4s¹.'
+              'Check each tag: do the electrons add up to Z ([Ne] = 10, [Ar] = 18)? Then remember the two exceptions: Cr and Cu move one 4s electron into 3d to get a half-full (d⁵) or full (d¹⁰) subshell.',
+              'Worked step: Mg is element 12, so it needs 12 − 10 = 2 electrons after [Ne]: [Ne] 3s², so “[Ne] 3s¹” is faulty. Cr (24) would “expect” 3d⁴ 4s² but is actually [Ar] 3d⁵ 4s¹.'
             ]
           }
         ]
