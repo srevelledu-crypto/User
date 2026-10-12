@@ -329,7 +329,7 @@
                 { text: 'Electrons are found in fixed energy levels (shells) around the nucleus.', error: false },
                 { text: 'An electron can jump to a higher energy level by absorbing a specific amount of energy.', error: false },
                 { text: 'The Bohr model accurately predicts the line spectra of every element.', error: true, fix: 'It only works well for hydrogen (one electron).' },
-                { text: 'Each energy level is a single orbit with no internal structure.', error: true, fix: 'Energy levels are split into subshells: s, p, d, f.' },
+                { text: 'Each energy level is a single orbit with no internal structure.', error: true, fix: 'Energy levels are split into subshells, such as s and p.' },
                 { text: 'An s subshell holds 2 electrons and a p subshell holds 6.', error: false },
                 { text: 'Electrons travel in neat circular paths, so we always know exactly where an electron is.', error: true, fix: 'Electrons occupy orbitals — regions where they are likely to be found.' },
                 { text: 'Higher energy levels are, on average, further from the nucleus.', error: false },
