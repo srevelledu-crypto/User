@@ -2352,15 +2352,18 @@ function buildPlanSVG(cls, room, opts) {
   const rects = new Map();
   for (const it of visible) if (!Core.isWall(it)) rects.set(it.id, pageRect(Core.itemGeom(it, room.scale).table));
   const roomBox = { x0: ox, x1: ox + (maxx - minx) * s, y0: oy, y1: oy + (maxy - miny) * s };
-  // free space beyond an edge: the full distance to the wall, or half the distance to other furniture
+  // free space beyond an edge: the full distance to the wall or to furniture with no seats facing
+  // back, otherwise half the gap (the labels opposite need the other half)
+  const facing = new Map();
   function freeBeyond(id, dir, edge, lo, hi) {
+    const opp = { U: 'D', D: 'U', L: 'R', R: 'L' }[dir];
     let free = { U: edge - roomBox.y0, D: roomBox.y1 - edge, L: edge - roomBox.x0, R: roomBox.x1 - edge }[dir];
     for (const [oid, r] of rects) {
       if (oid === id) continue;
       const vertical = dir === 'U' || dir === 'D';
       if (vertical ? (r.x1 <= lo || r.x0 >= hi) : (r.y1 <= lo || r.y0 >= hi)) continue;
       const d = { U: edge - r.y1, D: r.y0 - edge, L: edge - r.x1, R: r.x0 - edge }[dir];
-      if (d > -1) free = Math.min(free, Math.max(0, d) / 2);
+      if (d > -1) free = Math.min(free, facing.get(oid)?.has(opp) ? Math.max(0, d) / 2 : Math.max(0, d - 4));
     }
     return free;
   }
@@ -2371,6 +2374,10 @@ function buildPlanSVG(cls, room, opts) {
     const dir = ddx > ddy ? (p.x > cxr ? 'R' : 'L') : (p.y > cyr ? 'D' : 'U');
     return { st, p, r, dir };
   });
+  for (const o of P) { if (!facing.has(o.st.itemId)) facing.set(o.st.itemId, new Set()); facing.get(o.st.itemId).add(o.dir); }
+  const nameAt = o => { const sid = assign[o.st.key], st = sid && stById.get(sid); return st ? displayName(cls, st) : ''; };
+  // largest single-line font for a name in a box of the given length × thickness
+  const oneLineFs = (txt, len, thick) => { let fs = Math.min(base * 1.15, (thick - 6) / 1.15); while (fs > 7 && measure(txt, 500, fs) > len) fs -= .25; return measure(txt, 500, fs) > len ? fs * .6 : fs; };
   const groups = new Map();
   for (const o of P) { const k = o.st.itemId + o.dir; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
   for (const m of groups.values()) {
@@ -2388,11 +2395,37 @@ function buildPlanSVG(cls, room, opts) {
     const cap = horiz ? (n > 1 ? pxPerM * .9 : maxW / 2) : (n > 1 ? pxPerM * .3 : ph / 2 + 2);
     const ext = Math.max(0, Math.min(cap, (lo - nbL) / 2 - 2, (nbR - hi) / 2 - 2));
     const slot = n > 1 ? (hi - lo + 2 * ext) / n : 2 * ext;
+    // Along a horizontal edge, either write names along the edge, or turn them 90° so they run
+    // outwards from the table (the seat spacing becomes the label's thickness). Turn them only when
+    // names along the edge would be too small and turning gives clearly larger text.
+    let turn = false, tB = 0, lenB = 0, fsB = 0;
+    if (horiz) {
+      const id = m[0].st.itemId, dir = m[0].dir, edge = dir === 'U' ? m[0].r.y0 : m[0].r.y1;
+      const names = m.map(nameAt).filter(Boolean);
+      if (names.length) {
+        const cs = m.map((o, k) => n > 1 ? lo - ext + (k + .5) * slot : along(o));
+        const wA = clamp(Math.min(slot - 4, maxW), 30, maxW);
+        const hA = clamp(Math.min(ph, Math.min(...cs.map(c => freeBeyond(id, dir, edge, c - wA / 2, c + wA / 2))) - 3), 18, ph);
+        const fsA = Math.min(...names.map(t => oneLineFs(t, wA - 10, hA)));
+        const sp = n > 1 ? (hi - lo) / (n - 1) : Math.max(slot, ph);
+        tB = clamp(Math.min(sp - 3, ph), 14, ph);
+        const freeB = Math.min(...m.map(o => freeBeyond(id, dir, edge, along(o) - tB / 2, along(o) + tB / 2)));
+        const room4 = Math.min(freeB - 3, maxW);
+        fsB = Math.min(...names.map(t => oneLineFs(t, room4 - 12, tB)));
+        lenB = clamp(Math.max(...names.map(t => measure(t, 500, fsB))) + 18, 30, Math.max(30, room4));
+        turn = fsA < 11 && fsB > fsA + 1; // only turn when names along the edge would be too small
+      }
+    }
     m.forEach((o, k) => {
       const c = n > 1 ? lo - ext + (k + .5) * slot : along(o);
       const r = o.r, dir = o.dir;
-      if (horiz) {
-        o.w = clamp(Math.min(slot - 4, maxW), 44, maxW);
+      if (horiz && turn) {
+        const edge = dir === 'U' ? r.y0 : r.y1;
+        o.turned = true; o.t = tB; o.len = lenB; o.fs = fsB;
+        o.cx = along(o); o.cy = edge + (dir === 'U' ? -1 : 1) * (2 + lenB / 2);
+        o.w = tB; o.h = lenB;
+      } else if (horiz) {
+        o.w = clamp(Math.min(slot - 4, maxW), 30, maxW);
         const edge = dir === 'U' ? r.y0 : r.y1;
         const free = freeBeyond(o.st.itemId, dir, edge, c - o.w / 2, c + o.w / 2);
         o.h = clamp(Math.min(ph, free - 3), 18, ph);
@@ -2424,7 +2457,27 @@ function buildPlanSVG(cls, room, opts) {
       // empty seat: a faint chair on paper; a dashed drop target while editing
       if (!opts.interactive) { tray.push(`<circle cx="${f1(p.x)}" cy="${f1(p.y)}" r="5" fill="none" stroke="${shade(col, -18, 5)}" stroke-opacity=".55" stroke-width="1.2"/>`); continue; }
       const hh = o.h, cy = o.cy ?? (o.dir === 'U' ? o.edge - 2 - hh / 2 : o.edge + 2 + hh / 2);
-      tray.push(`<g data-seat="${st.key}"><rect x="${f1(o.cx - w / 2)}" y="${f1(cy - hh / 2)}" width="${f1(w)}" height="${f1(hh)}" rx="${f1(hh / 2)}" fill="#fff" fill-opacity=".55" stroke="${shade(col, -22, 5)}" stroke-width="1.2" stroke-dasharray="4 4"/></g>`);
+      const bw = o.turned ? Math.max(o.len, 30) : w, bh = o.turned ? o.t : hh;
+      tray.push(`<g data-seat="${st.key}"${o.turned ? ` transform="rotate(-90 ${f1(o.cx)} ${f1(cy)})"` : ''}><rect x="${f1(o.cx - bw / 2)}" y="${f1(cy - bh / 2)}" width="${f1(bw)}" height="${f1(bh)}" rx="${f1(bh / 2)}" fill="#fff" fill-opacity=".55" stroke="${shade(col, -22, 5)}" stroke-width="1.2" stroke-dasharray="4 4"/></g>`);
+      continue;
+    }
+    if (o.turned) {
+      const L = o.len, t = o.t, cx = o.cx, cy = o.cy, x = cx - L / 2, top = cy - t / 2;
+      // shrink to fit the space first (down to 7px); only abbreviate/truncate if it still won't fit
+      const nm = displayName(cls, stu), fsT = oneLineFs(nm, L - 12, t);
+      const fit = measure(nm, 500, fsT) <= L - 12 ? { lines: [nm], fs: fsT } : fitName(nm, L - 12, 9, false, 1);
+      const isSel = opts.interactive && ui.selStudent === stu.id;
+      const bad = priv && violSeats.has(st.key);
+      const stroke = isSel ? pal.accent : bad ? '#D1495B' : shade(col, -22, 8);
+      let g = `<g data-seat="${st.key}" data-student="${stu.id}" transform="rotate(-90 ${f1(cx)} ${f1(cy)})">`;
+      g += `<rect x="${f1(x)}" y="${f1(top)}" width="${f1(L)}" height="${f1(t)}" rx="${f1(t / 2)}" fill="#fff" stroke="${stroke}" stroke-width="${isSel || bad ? 2.6 : 1.5}" filter="url(#${F}shs)"/>`;
+      g += `<text x="${f1(cx)}" y="${f1(cy + fit.fs * .35)}" font-size="${f1(fit.fs)}" font-weight="500" text-anchor="middle" fill="${pal.ink}">${esc(fit.lines[0])}</text>`;
+      if (priv) {
+        if (stu.front) g += `<circle cx="${f1(x + 5)}" cy="${f1(top + 3)}" r="7.5" fill="#F6C343" stroke="#fff" stroke-width="1.5"/><path d="${starPath(x + 5, top + 3, 4.6)}" fill="#fff"/>`;
+        if (stu.lock && stu.lock === st.key) g += `<circle cx="${f1(x + L - 5)}" cy="${f1(top + 3)}" r="7.5" fill="${pal.accent}" stroke="#fff" stroke-width="1.5"/>${lockGlyph(x + L - 5, top + 3)}`;
+        if (bad) g += `<circle cx="${f1(x + L - (stu.lock === st.key ? 21 : 5))}" cy="${f1(top + 3)}" r="7.5" fill="#D1495B" stroke="#fff" stroke-width="1.5"/><text x="${f1(x + L - (stu.lock === st.key ? 21 : 5))}" y="${f1(top + 6.6)}" font-size="10" font-weight="700" text-anchor="middle" fill="#fff">!</text>`;
+      }
+      tray.push(g + '</g>');
       continue;
     }
     const fsMax = Math.min(base, (o.h - 7) / 1.1);

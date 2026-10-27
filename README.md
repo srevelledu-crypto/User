@@ -25,7 +25,8 @@ with what's already there or replace it.
 The plan only turns in 90° steps, so tables always stay square to the page. If
 the board is on an angled wall, it picks whichever orientation fills the A4
 landscape page best. Names default to first name plus surname initial
-("Charlotte N."). The ★ front-priority, 🔒 locked, ! broken-rule and ✕
+("Charlotte N."). Where desks are pushed together and names along the table
+edge would be too small, the labels turn 90° and run outward from the table. The ★ front-priority, 🔒 locked, ! broken-rule and ✕
 unavailable-seat markers appear on screen while you edit. They never appear on
 the printed, PNG or PDF plan.
 
