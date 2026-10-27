@@ -25,11 +25,35 @@ Shortcuts (Room tab): `R` rotates, `Del` deletes, `Ctrl/⌘+D` duplicates, and
 the arrow keys nudge. `Shift` while drawing walls turns off snapping. Undo and
 redo (`Ctrl/⌘+Z`, `Ctrl/⌘+Shift+Z`) work everywhere.
 
+## Furniture sizes
+
+Furniture uses real sizes in metres, based on typical Australian secondary
+school furniture. Each grid square is 0.5 m by default; change "m per square"
+in the Room tab and the furniture keeps its real size. Furniture snaps to
+0.25 m.
+
+| Item | Table top | Notes |
+|---|---|---|
+| Single desk | 0.7 × 0.5 m | 1 student |
+| Pair desk | 1.2 × 0.6 m | 2 students, 0.6 m each |
+| Table of 4 | 1.2 × 1.2 m | two pair desks pushed together |
+| Table of 6 | 1.8 × 1.2 m | three pair desks pushed together |
+| Round table (4) | 1.2 m diameter | |
+| Custom table | 0.6 m per seat along each side | at least 1.2 × 0.6 m |
+| Lab bench, both sides seated | length you set × 1.2 m | island bench; default 2.4 m with 3 a side (0.8 m each for practicals) |
+| Lab bench, one side or none | length you set × 0.6 m | wall bench, sink run or fume-cupboard side |
+| Teacher's desk | 1.5 × 0.75 m | |
+| Board / door / window | 3.6 m / 0.9 m / 2.0 m | lengths are editable |
+
+Each seated side also gets 0.5 m of chair space, which is included in
+collision checks. Benches never squeeze students below 0.45 m each. Table
+height (e.g. 85 cm lab-height benches with stools) doesn't affect a floor plan.
+
 ## How the solver works
 
 - **Seat conflicts.** Two seats conflict if they are at the same table. In
-  "adjacent" mode they also conflict if they are within 3 grid squares
-  (≈1.5 m) at a neighbouring table.
+  "adjacent" mode they also conflict if they are within 1.5 m
+  at a neighbouring table, measured in real distance.
 - **Placement order.** Locked students are placed first. A backtracking search
   with forward checking then seats front-priority students, trying the seats
   closest to the board first. Everyone else is seated "fewest remaining options

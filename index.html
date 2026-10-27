@@ -316,7 +316,7 @@ kbd { font: 11px Inter, sans-serif; border: 1px solid var(--line-2); border-bott
         <h2>Keep-apart strictness</h2>
         <label class="check"><input type="radio" name="adj" value="table"> Not at the same table / pair</label>
         <label class="check"><input type="radio" name="adj" value="adjacent"> Same table <b>and</b> directly adjacent seats on neighbouring tables</label>
-        <div class="hint">“Adjacent” means seats on different tables within about 1.5 m (3 squares) of each other.</div>
+        <div class="hint">“Adjacent” means seats on different tables within 1.5 m of each other.</div>
       </div>
       <div class="section" id="classSummary"></div>
     </aside>
@@ -423,7 +423,9 @@ kbd { font: 11px Inter, sans-serif; border: 1px solid var(--line-2); border-bott
    Units: 1 grid square ("unit"). Furniture is sized for ~0.5 m squares.
 ------------------------------------------------------------------- */
 const Core = (() => {
-  const ADJ_DIST = 3.0;   // seats on different tables within this many units are "adjacent"
+  const ADJ_M = 1.5;      // seats on different tables within this many metres are "adjacent"
+  const CHAIR_M = 0.5;    // depth of the chair/stool zone beside a seated edge
+  const SEAT_M = 0.6;     // table edge allowed per student
   const EPS = 1e-6;
 
   function mulberry32(a) {
@@ -443,22 +445,25 @@ const Core = (() => {
   }
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+  /* Real-world sizes in metres (typical Australian secondary school furniture). */
   const TYPES = {
-    single:  { label: 'Single desk',   tw: 2, th: 1, sides: { t: 0, b: 1, l: 0, r: 0 }, seated: true },
-    pair:    { label: 'Pair desk',     tw: 4, th: 1, sides: { t: 0, b: 2, l: 0, r: 0 }, seated: true },
-    group4:  { label: 'Table of 4',    tw: 4, th: 2, sides: { t: 2, b: 2, l: 0, r: 0 }, seated: true },
-    group6:  { label: 'Table of 6',    tw: 6, th: 2, sides: { t: 3, b: 3, l: 0, r: 0 }, seated: true },
-    round4:  { label: 'Round table (4)', tw: 2, th: 2, sides: { t: 1, b: 1, l: 1, r: 1 }, seated: true, round: true },
-    custom:  { label: 'Custom table',  seated: true },
-    bench:   { label: 'Lab bench',     seated: true },
-    teacher: { label: "Teacher's desk", tw: 4, th: 2, sides: { t: 0, b: 0, l: 0, r: 0 } },
-    board:   { label: 'Board',  wall: true, len: 8 },
-    door:    { label: 'Door',   wall: true, len: 2 },
-    window:  { label: 'Window', wall: true, len: 4 },
+    single:  { label: 'Single desk',     w: 0.7, d: 0.5,  sides: { t: 0, b: 1, l: 0, r: 0 }, seated: true },
+    pair:    { label: 'Pair desk',       w: 1.2, d: 0.6,  sides: { t: 0, b: 2, l: 0, r: 0 }, seated: true },
+    group4:  { label: 'Table of 4',      w: 1.2, d: 1.2,  sides: { t: 2, b: 2, l: 0, r: 0 }, seated: true },
+    group6:  { label: 'Table of 6',      w: 1.8, d: 1.2,  sides: { t: 3, b: 3, l: 0, r: 0 }, seated: true },
+    round4:  { label: 'Round table (4)', w: 1.2, d: 1.2,  sides: { t: 1, b: 1, l: 1, r: 1 }, seated: true, round: true },
+    custom:  { label: 'Custom table',    seated: true },
+    bench:   { label: 'Lab bench',       seated: true },
+    teacher: { label: "Teacher's desk",  w: 1.5, d: 0.75, sides: { t: 0, b: 0, l: 0, r: 0 } },
+    board:   { label: 'Board',  wall: true, lenM: 3.6 },
+    door:    { label: 'Door',   wall: true, lenM: 0.9 },
+    window:  { label: 'Window', wall: true, lenM: 2.0 },
   };
   const isWall = it => !!(TYPES[it.type] && TYPES[it.type].wall);
   const isSeated = it => !!(TYPES[it.type] && TYPES[it.type].seated);
   const isRound = it => !!(TYPES[it.type] && TYPES[it.type].round);
+  const wallLenM = it => it.lenM || TYPES[it.type].lenM;
+  const benchLenM = it => clamp(+it.lenM || 2.4, 0.6, 20);
 
   function normSides(s) {
     s = s || {};
@@ -466,30 +471,37 @@ const Core = (() => {
     return { t: f(s.t), b: f(s.b), l: f(s.l), r: f(s.r) };
   }
 
-  function tableDims(item) {
+  /* Table-top size in metres and seats per side. */
+  function tableSizeM(item) {
     if (item.type === 'custom') {
       const s = normSides(item.sides);
-      return { tw: Math.max(2, 2 * Math.max(s.t, s.b)), th: Math.max(2, 2 * Math.max(s.l, s.r)), sides: s };
+      return { w: Math.max(1.2, SEAT_M * Math.max(s.t, s.b)), d: Math.max(s.t && s.b ? 1.2 : 0.6, SEAT_M * Math.max(s.l, s.r)), sides: s };
     }
     if (item.type === 'bench') {
-      const s = normSides(item.sides);
-      const len = clamp(Math.round(item.len || 8), 2, 40);
-      return { tw: len, th: 2, sides: { t: Math.min(s.t, len), b: Math.min(s.b, len), l: 0, r: 0 } };
+      // single-sided (wall) benches are 0.6 m deep, double-sided island benches 1.2 m
+      const s = normSides(item.sides), len = benchLenM(item), max = Math.floor(len / 0.45);
+      const sides = { t: Math.min(s.t, max), b: Math.min(s.b, max), l: 0, r: 0 };
+      return { w: len, d: sides.t && sides.b ? 1.2 : 0.6, sides };
     }
     const T = TYPES[item.type];
-    return { tw: T.tw, th: T.th, sides: { ...T.sides } };
+    return { w: T.w, d: T.d, sides: { ...T.sides } };
+  }
+  function tableDims(item, scale = 0.5) {
+    const m = tableSizeM(item);
+    return { tw: m.w / scale, th: m.d / scale, sides: m.sides };
   }
 
   /* Footprint (table + seat zone), table rect and seat centres in room coords. */
-  function itemGeom(item) {
-    const { tw, th, sides } = tableDims(item);
-    const ox = sides.l ? 1 : 0, oy = sides.t ? 1 : 0;
-    const fw = tw + ox + (sides.r ? 1 : 0), fh = th + oy + (sides.b ? 1 : 0);
+  function itemGeom(item, scale = 0.5) {
+    const { tw, th, sides } = tableDims(item, scale);
+    const cz = CHAIR_M / scale, c2 = cz / 2;
+    const ox = sides.l ? cz : 0, oy = sides.t ? cz : 0;
+    const fw = tw + ox + (sides.r ? cz : 0), fh = th + oy + (sides.b ? cz : 0);
     const local = [];
-    for (let i = 0; i < sides.t; i++) local.push({ x: ox + tw * (i + .5) / sides.t, y: oy - .5, side: 't', spacing: tw / sides.t });
-    for (let i = 0; i < sides.r; i++) local.push({ x: ox + tw + .5, y: oy + th * (i + .5) / sides.r, side: 'r', spacing: th / sides.r });
-    for (let i = 0; i < sides.b; i++) local.push({ x: ox + tw * (i + .5) / sides.b, y: oy + th + .5, side: 'b', spacing: tw / sides.b });
-    for (let i = 0; i < sides.l; i++) local.push({ x: ox - .5, y: oy + th * (i + .5) / sides.l, side: 'l', spacing: th / sides.l });
+    for (let i = 0; i < sides.t; i++) local.push({ x: ox + tw * (i + .5) / sides.t, y: oy - c2, side: 't', spacing: tw / sides.t });
+    for (let i = 0; i < sides.r; i++) local.push({ x: ox + tw + c2, y: oy + th * (i + .5) / sides.r, side: 'r', spacing: th / sides.r });
+    for (let i = 0; i < sides.b; i++) local.push({ x: ox + tw * (i + .5) / sides.b, y: oy + th + c2, side: 'b', spacing: tw / sides.b });
+    for (let i = 0; i < sides.l; i++) local.push({ x: ox - c2, y: oy + th * (i + .5) / sides.l, side: 'l', spacing: th / sides.l });
     const rot = (((item.rot || 0) % 4) + 4) % 4;
     const W = rot % 2 ? fh : fw, H = rot % 2 ? fw : fh;
     const tf = (px, py) => {
@@ -574,12 +586,12 @@ const Core = (() => {
 
   function itemProblem(room, item) {
     if (isWall(item)) return null;
-    const g = itemGeom(item);
+    const g = itemGeom(item, room.scale);
     const r = { x: g.x, y: g.y, w: g.w, h: g.h };
     if (!rectInside(r, room.boundary)) return 'outside';
     for (const o of room.items) {
       if (o.id === item.id || isWall(o)) continue;
-      const og = itemGeom(o);
+      const og = itemGeom(o, room.scale);
       if (rectsOverlap(r, { x: og.x, y: og.y, w: og.w, h: og.h })) return 'overlap';
     }
     return null;
@@ -596,7 +608,7 @@ const Core = (() => {
     }
     const { a, b } = best;
     const L = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-    const len = Math.min(item.len || TYPES[item.type].len, L);
+    const len = Math.min(wallLenM(item) / (room.scale || 0.5), L);
     const ux = (b.x - a.x) / L, uy = (b.y - a.y) / L;
     const c = clamp(best.t * L, len / 2, L - len / 2);
     const p1 = { x: a.x + ux * (c - len / 2), y: a.y + uy * (c - len / 2) };
@@ -618,10 +630,10 @@ const Core = (() => {
     let tableNo = 0;
     const tables = room.items.filter(isSeated);
     for (const it of tables) {
-      const g = itemGeom(it);
+      const g = itemGeom(it, room.scale);
       for (const s of g.seats) {
         const dist = bg ? projectToSeg(s, bg.p1, bg.p2).d : s.y - minY;
-        seats.push({ key: s.key, itemId: it.id, x: s.x, y: s.y, dist, unavailable: s.unavailable, spacing: s.spacing, side: s.side });
+        seats.push({ key: s.key, itemId: it.id, x: s.x, y: s.y, dist, unavailable: s.unavailable, spacing: s.spacing, side: s.side, scale: room.scale || 0.5 });
       }
     }
     const avail = seats.filter(s => !s.unavailable).sort((a, b) => a.dist - b.dist);
@@ -632,7 +644,7 @@ const Core = (() => {
 
   function seatsConflict(a, b, mode) {
     if (a.itemId === b.itemId) return true;
-    return mode === 'adjacent' && Math.hypot(a.x - b.x, a.y - b.y) <= ADJ_DIST + EPS;
+    return mode === 'adjacent' && Math.hypot(a.x - b.x, a.y - b.y) * (a.scale || 0.5) <= ADJ_M + EPS;
   }
 
   /* ------------------------------------------------------------------
@@ -704,7 +716,7 @@ const Core = (() => {
             preBad.add(r.id);
           }
         }
-        if (mode === 'table' && r.members.length > tablesWithSeats.size) {
+        if (r.members.length > tablesWithSeats.size) {
           problems.push(`“${L}” needs ${r.members.length} different tables, but the room only has ${tablesWithSeats.size}.`);
           preBad.add(r.id);
         }
@@ -904,7 +916,7 @@ const Core = (() => {
   }
 
   return {
-    TYPES, ADJ_DIST, isWall, isSeated, isRound, tableDims, itemGeom, wallGeom, roomSeats, itemProblem, rectInside,
+    TYPES, ADJ_M, CHAIR_M, isWall, isSeated, isRound, wallLenM, benchLenM, tableSizeM, tableDims, itemGeom, wallGeom, roomSeats, itemProblem, rectInside,
     pointInPoly, projectToSeg, polyArea, selfIntersects, seatsConflict, solve, checkPlan, mulberry32, shuffle, boardOf, clamp,
   };
 })();
@@ -915,7 +927,8 @@ if (typeof module !== 'undefined') module.exports = Core;
 /*SAMPLE-START*/
 /* Sample room + class shown on first load (all names fictional). */
 const Sample = (() => {
-  const RECT = [{ x: 0, y: 0 }, { x: 24, y: 0 }, { x: 24, y: 18 }, { x: 0, y: 18 }];
+  // Grid squares are 0.5 m. Room B12 is 10 m × 9 m; Lab 3 is 13 m × 9 m with a prep-room cut-out.
+  const RECT = [{ x: 0, y: 0 }, { x: 20, y: 0 }, { x: 20, y: 18 }, { x: 0, y: 18 }];
   const PRESETS = {
     rectangle: { label: 'Rectangle', boundary: RECT },
     lshape: { label: 'L-shape', boundary: [{ x: 0, y: 0 }, { x: 16, y: 0 }, { x: 16, y: 8 }, { x: 26, y: 8 }, { x: 26, y: 20 }, { x: 0, y: 20 }] },
@@ -928,36 +941,38 @@ const Sample = (() => {
         id: 'room_b12', name: 'Room B12', sample: true, scale: 0.5, showMetres: true,
         boundary: RECT.map(p => ({ ...p })),
         items: [
-          { id: 'b12_board', type: 'board', x: 12, y: 0, len: 8 },
+          { id: 'b12_board', type: 'board', x: 10, y: 0, lenM: 3.6 },
           { id: 'b12_teacher', type: 'teacher', x: 1, y: 1, rot: 0 },
-          { id: 'b12_door', type: 'door', x: 0, y: 15.5, len: 2 },
-          { id: 'b12_win1', type: 'window', x: 24, y: 5, len: 4 },
-          { id: 'b12_win2', type: 'window', x: 24, y: 12, len: 4 },
-          { id: 'b12_t1', type: 'group4', x: 3, y: 5, rot: 0 },
-          { id: 'b12_t2', type: 'group4', x: 10, y: 5, rot: 0 },
-          { id: 'b12_t3', type: 'group4', x: 17, y: 5, rot: 0 },
-          { id: 'b12_t4', type: 'group4', x: 3, y: 11, rot: 0 },
-          { id: 'b12_t5', type: 'group4', x: 10, y: 11, rot: 0 },
-          { id: 'b12_t6', type: 'group4', x: 17, y: 11, rot: 0 },
-          { id: 'b12_p1', type: 'pair', x: 3, y: 16, rot: 0 },
-          { id: 'b12_p2', type: 'pair', x: 10, y: 16, rot: 0 },
-          { id: 'b12_p3', type: 'pair', x: 17, y: 16, rot: 0, off: [1] },
+          { id: 'b12_door', type: 'door', x: 0, y: 16, lenM: 0.9 },
+          { id: 'b12_win1', type: 'window', x: 20, y: 5, lenM: 2.4 },
+          { id: 'b12_win2', type: 'window', x: 20, y: 12, lenM: 2.4 },
+          { id: 'b12_t1', type: 'group4', x: 3.5, y: 4, rot: 0 },
+          { id: 'b12_t2', type: 'group4', x: 8.8, y: 4, rot: 0 },
+          { id: 'b12_t3', type: 'group4', x: 14.1, y: 4, rot: 0 },
+          { id: 'b12_t4', type: 'group4', x: 3.5, y: 9.5, rot: 0 },
+          { id: 'b12_t5', type: 'group4', x: 8.8, y: 9.5, rot: 0 },
+          { id: 'b12_t6', type: 'group4', x: 14.1, y: 9.5, rot: 0 },
+          { id: 'b12_p1', type: 'pair', x: 3.5, y: 15, rot: 0 },
+          { id: 'b12_p2', type: 'pair', x: 8.8, y: 15, rot: 0 },
+          { id: 'b12_p3', type: 'pair', x: 14.1, y: 15, rot: 0, off: [1] },
         ],
       },
       {
         id: 'room_lab3', name: 'Lab 3', sample: true, scale: 0.5, showMetres: true,
         boundary: PRESETS.lab.boundary.map(p => ({ ...p })),
         items: [
-          { id: 'l3_board', type: 'board', x: 9, y: 0, len: 8 },
+          { id: 'l3_board', type: 'board', x: 9, y: 0, lenM: 3.6 },
           { id: 'l3_teacher', type: 'teacher', x: 14, y: 1, rot: 0 },
-          { id: 'l3_door', type: 'door', x: 26, y: 15, len: 2 },
-          { id: 'l3_win', type: 'window', x: 0, y: 9, len: 6 },
-          { id: 'l3_b1', type: 'bench', x: 2, y: 4, len: 6, sides: { t: 3, b: 3 } },
-          { id: 'l3_b2', type: 'bench', x: 10, y: 4, len: 6, sides: { t: 3, b: 3 } },
-          { id: 'l3_b3', type: 'bench', x: 2, y: 10, len: 6, sides: { t: 3, b: 3 } },
-          { id: 'l3_b4', type: 'bench', x: 10, y: 10, len: 6, sides: { t: 3, b: 3 } },
-          { id: 'l3_b5', type: 'bench', x: 18, y: 9, len: 6, sides: { t: 3, b: 3 } },
-          { id: 'l3_fume', type: 'bench', x: 2, y: 16, len: 10, sides: { t: 0, b: 0 } },
+          { id: 'l3_door', type: 'door', x: 26, y: 15.5, lenM: 0.9 },
+          { id: 'l3_win', type: 'window', x: 0, y: 9, lenM: 3 },
+          // 2.4 m × 1.2 m double-sided island benches, 3 students a side (0.8 m each for practical work)
+          { id: 'l3_b1', type: 'bench', x: 2, y: 4, lenM: 2.4, sides: { t: 3, b: 3 } },
+          { id: 'l3_b2', type: 'bench', x: 9, y: 4, lenM: 2.4, sides: { t: 3, b: 3 } },
+          { id: 'l3_b3', type: 'bench', x: 2, y: 10.5, lenM: 2.4, sides: { t: 3, b: 3 } },
+          { id: 'l3_b4', type: 'bench', x: 9, y: 10.5, lenM: 2.4, sides: { t: 3, b: 3 } },
+          { id: 'l3_b5', type: 'bench', x: 17, y: 10.5, lenM: 2.4, sides: { t: 3, b: 3 } },
+          // 0.6 m-deep wall bench (sinks/fume cupboard side), no seats
+          { id: 'l3_wall', type: 'bench', x: 2, y: 16.8, lenM: 4.8, sides: { t: 0, b: 0 } },
         ],
       },
     ];
@@ -1032,7 +1047,13 @@ function save() {
 function todayStr() { return new Date().toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }); }
 
 function normRoom(r) {
-  return Object.assign({ id: uid('room'), name: 'Room', scale: 0.5, showMetres: true, boundary: Sample.PRESETS.rectangle.boundary.map(p => ({ ...p })), items: [] }, r);
+  const out = Object.assign({ id: uid('room'), name: 'Room', scale: 0.5, showMetres: true, boundary: Sample.PRESETS.rectangle.boundary.map(p => ({ ...p })), items: [] }, r);
+  for (const it of out.items) {
+    // v1 stored board/door/window/bench lengths in grid squares; v2 stores metres
+    if (it.lenM == null && it.len != null) it.lenM = Math.round(it.len * out.scale * 100) / 100;
+    delete it.len;
+  }
+  return out;
 }
 function normClass(c) {
   const out = Object.assign({ id: uid('class'), name: 'Class', roomId: null, teacher: '', date: '', roomLabel: '', students: [], rules: [], adjacency: 'adjacent', fill: 'front', perspective: 'teacher', palette: 'pastel', hidePrivate: true, nameFormat: 'full', plan: { assign: {} } }, c);
@@ -1043,7 +1064,7 @@ function normClass(c) {
   return out;
 }
 function freshData() {
-  return { version: 1, rooms: Sample.rooms().map(normRoom), classes: Sample.classes().map(normClass), activeRoomId: 'room_b12', activeClassId: 'class_10sci' };
+  return { version: 2, rooms: Sample.rooms().map(normRoom), classes: Sample.classes().map(normClass), activeRoomId: 'room_b12', activeClassId: 'class_10sci' };
 }
 function fixRefs() {
   if (!data.rooms.length) data.rooms.push(blankRoom());
@@ -1053,7 +1074,7 @@ function fixRefs() {
   for (const c of data.classes) if (!data.rooms.some(r => r.id === c.roomId)) c.roomId = data.rooms[0].id;
 }
 function blankRoom(name) {
-  return normRoom({ id: uid('room'), name: name || 'My classroom', items: [{ id: uid('board'), type: 'board', x: 12, y: 0, len: 8 }] });
+  return normRoom({ id: uid('room'), name: name || 'My classroom', items: [{ id: uid('board'), type: 'board', x: 10, y: 0 }] });
 }
 function blankClass(name) {
   return normClass({ id: uid('class'), name: name || 'My class', roomId: data && data.rooms[0] ? data.activeRoomId : null });
@@ -1275,7 +1296,7 @@ function renderSelSection(room) {
   const it = ui.selItem && getItem(room, ui.selItem);
   if (!it || ui.tool !== 'select') { el.innerHTML = ''; return; }
   const T = Core.TYPES[it.type];
-  const g = !Core.isWall(it) ? Core.itemGeom(it) : null;
+  const g = !Core.isWall(it) ? Core.itemGeom(it, room.scale) : null;
   let h = `<h2>Selected: ${esc(T.label)}</h2><div class="btn-row">
     ${!Core.isWall(it) ? '<button class="btn sm" data-act="rotate">⟳ Rotate 90°</button>' : ''}
     <button class="btn sm" data-act="dup">⧉ Duplicate</button>
@@ -1283,10 +1304,12 @@ function renderSelSection(room) {
   if (it.type === 'custom' || it.type === 'bench') {
     const s = it.sides || {};
     const sideIn = (k, lbl) => `<label class="field" style="flex:1"><span>${lbl}</span><input class="input" type="number" min="0" max="12" data-side="${k}" value="${s[k] || 0}"></label>`;
-    if (it.type === 'bench') h += `<label class="field"><span>Bench length (squares)</span><input class="input" type="number" min="2" max="40" data-prop="len" value="${it.len || 8}"></label>`;
+    if (it.type === 'bench') h += `<label class="field"><span>Bench length (m)</span><input class="input" type="number" min="0.6" max="20" step="0.1" data-prop="lenM" value="${Core.benchLenM(it)}"></label>
+      <div class="hint">Allow 0.6 m per student (0.8 m for practical work). Seats on both sides make a 1.2 m-deep island bench; one side or none makes a 0.6 m wall bench.</div>`;
     h += `<div class="hint">Seats per side</div><div class="row">${sideIn('t', 'Top')}${sideIn('b', 'Bottom')}${it.type === 'custom' ? sideIn('l', 'Left') + sideIn('r', 'Right') : ''}</div>`;
   }
-  if (Core.isWall(it)) h += `<label class="field"><span>Length (squares)</span><input class="input" type="number" min="1" max="40" data-prop="len" value="${it.len || T.len}"></label>`;
+  if (Core.isWall(it)) h += `<label class="field"><span>Length (m)</span><input class="input" type="number" min="0.3" max="20" step="0.1" data-prop="lenM" value="${Core.wallLenM(it)}"></label>`;
+  if (g) { const m = Core.tableSizeM(it); h += `<div class="hint">${Core.isRound(it) ? `${m.w} m diameter` : `${r2(m.w)} m × ${r2(m.d)} m`}${g.seats.length ? ` · ${Core.CHAIR_M} m chair space on seated sides` : ''}</div>`; }
   if (g && g.seats.length) {
     const off = (it.off || []).length;
     h += `<div class="hint">${g.seats.length} seats${off ? `, ${off} unavailable` : ''}. Tap a seat to toggle it.</div>`;
@@ -1372,7 +1395,7 @@ function builderItem(room, it, seatInfo) {
     if (it.id === ui.selItem) h += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="var(--accent)" stroke-width=".9" stroke-opacity=".25" stroke-linecap="round"/>`;
     return h + '</g>';
   }
-  const g = Core.itemGeom(it);
+  const g = Core.itemGeom(it, room.scale);
   const tcls = it.type === 'teacher' ? 'b-teacher' : it.type === 'bench' ? 'b-bench' : 'b-table';
   let h = `<g class="${cls}" data-item="${it.id}" ${preview ? 'opacity=".7"' : ''}>`;
   h += `<rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" fill="transparent"/>`;
@@ -1382,13 +1405,14 @@ function builderItem(room, it, seatInfo) {
   const cx = g.table.x + g.table.w / 2, cy = g.table.y + g.table.h / 2;
   if (it.type === 'teacher') h += `<text class="b-label" x="${cx}" y="${cy}">Teacher</text>`;
   else if (it.type === 'bench' && !g.seats.length) h += `<text class="b-label" x="${cx}" y="${cy}">Bench</text>`;
+  const sr = .21 / (room.scale || .5);
   for (const s of g.seats) {
     const info = seatInfo.get(s.key);
-    h += `<circle class="b-seat ${s.unavailable ? 'off' : ''}" data-seat="${s.key}" cx="${s.x}" cy="${s.y}" r=".42"/>`;
+    h += `<circle class="b-seat ${s.unavailable ? 'off' : ''}" data-seat="${s.key}" cx="${s.x}" cy="${s.y}" r="${sr}"/>`;
     if (s.unavailable) h += `<path d="M${s.x - .18} ${s.y - .18}l.36 .36m0 -.36l-.36 .36" stroke="#9A968D" stroke-width=".07" pointer-events="none"/>`;
     else if (ui.showDist && info) {
       const d = room.showMetres ? (info.dist * (room.scale || .5)).toFixed(1) : Math.round(info.dist * 10) / 10;
-      h += `<text class="b-seatnum" x="${s.x}" y="${s.y}">${d}</text>`;
+      h += `<text class="b-seatnum" x="${s.x}" y="${s.y}" style="font-size:${r2(sr * .72)}px">${d}</text>`;
     }
   }
   if (bad) h += `<rect class="b-bad" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx=".2"/>`;
@@ -1397,13 +1421,16 @@ function builderItem(room, it, seatInfo) {
 }
 
 /* ----- creating items ----- */
+const fstep = room => .25 / (room.scale || .5); // furniture snaps to 0.25 m
+const snapF = (room, v) => r2(Math.round(v / fstep(room)) * fstep(room));
 function makeItem(type, at) {
+  const room = activeRoom();
   const it = { id: uid(type), type, x: 0, y: 0, rot: 0 };
   if (type === 'custom') it.sides = { t: 2, b: 2, l: 1, r: 1 };
-  if (type === 'bench') { it.len = 8; it.sides = { t: 0, b: 4 }; }
-  if (Core.TYPES[type].wall) { it.len = Core.TYPES[type].len; it.x = at.x; it.y = at.y; snapWallItem(activeRoom(), it, at); return it; }
-  const g = Core.itemGeom(it);
-  it.x = Math.round(at.x - g.w / 2); it.y = Math.round(at.y - g.h / 2);
+  if (type === 'bench') { it.lenM = 2.4; it.sides = { t: 3, b: 3 }; }
+  if (Core.TYPES[type].wall) { it.lenM = Core.TYPES[type].lenM; it.x = at.x; it.y = at.y; snapWallItem(room, it, at); return it; }
+  const g = Core.itemGeom(it, room.scale);
+  it.x = snapF(room, at.x - g.w / 2); it.y = snapF(room, at.y - g.h / 2);
   return it;
 }
 function snapWallItem(room, it, p) {
@@ -1417,10 +1444,11 @@ function snapWallItem(room, it, p) {
 }
 function findFreeSpot(room, it, near) {
   const b = roomBBox(room);
-  const g = Core.itemGeom(it);
+  const g = Core.itemGeom(it, room.scale);
   const c = near || { x: b.x + b.w / 2, y: b.y + b.h / 2 };
   const cands = [];
-  for (let x = Math.floor(b.x); x <= b.x + b.w - g.w; x++) for (let y = Math.floor(b.y); y <= b.y + b.h - g.h; y++) cands.push({ x, y, d: Math.hypot(x + g.w / 2 - c.x, y + g.h / 2 - c.y) });
+  const st = fstep(room);
+  for (let x = Math.floor(b.x); x <= b.x + b.w - g.w; x += st) for (let y = Math.floor(b.y); y <= b.y + b.h - g.h; y += st) cands.push({ x, y, d: Math.hypot(x + g.w / 2 - c.x, y + g.h / 2 - c.y) });
   cands.sort((p, q) => p.d - q.d);
   for (const p of cands) {
     const t = { ...it, x: p.x, y: p.y };
@@ -1452,11 +1480,11 @@ function itemAction(act) {
   if (act === 'allon') { mutate(() => { it.off = []; }); return; }
   if (act === 'rotate') {
     if (Core.isWall(it)) return;
-    const g0 = Core.itemGeom(it);
+    const g0 = Core.itemGeom(it, room.scale);
     const cx = g0.x + g0.w / 2, cy = g0.y + g0.h / 2;
     const t = { ...it, rot: ((it.rot || 0) + 1) % 4 };
-    const g1 = Core.itemGeom(t);
-    t.x = Math.round(cx - g1.w / 2); t.y = Math.round(cy - g1.h / 2);
+    const g1 = Core.itemGeom(t, room.scale);
+    t.x = snapF(room, cx - g1.w / 2); t.y = snapF(room, cy - g1.h / 2);
     let ok = !Core.itemProblem(room, t);
     if (!ok) { const s = findFreeSpot(room, t, { x: cx, y: cy }); if (s && Math.hypot(s.x - t.x, s.y - t.y) < 4) { t.x = s.x; t.y = s.y; ok = true; } }
     if (!ok) return toast("Not enough room to rotate it here. Move it first.");
@@ -1467,8 +1495,9 @@ function itemAction(act) {
     const copy = JSON.parse(JSON.stringify(it));
     copy.id = uid(it.type);
     if (Core.isWall(it)) { copy.x += 0; mutate(() => { room.items.push(copy); ui.selItem = copy.id; }); return; }
-    const g = Core.itemGeom(it);
-    const tries = [[g.w + 1, 0], [0, g.h + 1], [-(g.w + 1), 0], [0, -(g.h + 1)]];
+    const g = Core.itemGeom(it, room.scale);
+    const gap = fstep(room) * 2;
+    const tries = [[g.w + gap, 0], [0, g.h + gap], [-(g.w + gap), 0], [0, -(g.h + gap)]];
     let placed = false;
     for (const [dx, dy] of tries) { copy.x = it.x + dx; copy.y = it.y + dy; if (!Core.itemProblem(room, copy)) { placed = true; break; } }
     if (!placed) { const s = findFreeSpot(room, copy, { x: it.x, y: it.y }); if (!s) return toast('No free space to duplicate into.'); copy.x = s.x; copy.y = s.y; }
@@ -1606,7 +1635,7 @@ svg.addEventListener('pointermove', e => {
     if (!rdrag.moved && Math.hypot(dx, dy) < .35) return;
     rdrag.moved = true;
     if (Core.isWall(it)) snapWallItem(room, it, p);
-    else { it.x = Math.round(rdrag.ox + dx); it.y = Math.round(rdrag.oy + dy); }
+    else { it.x = snapF(room, rdrag.ox + dx); it.y = snapF(room, rdrag.oy + dy); }
     renderRoomSvg();
   } else if (rdrag.kind === 'vertex') {
     const q = snapPt(p, e.shiftKey);
@@ -1776,7 +1805,7 @@ function bindRoom() {
     if (!it) return;
     const before = snap();
     if (e.target.dataset.side) { it.sides = { ...(it.sides || {}) }; it.sides[e.target.dataset.side] = clamp(parseInt(e.target.value, 10) || 0, 0, 12); }
-    if (e.target.dataset.prop === 'len') it.len = clamp(parseInt(e.target.value, 10) || 1, 1, 40);
+    if (e.target.dataset.prop === 'lenM') it.lenM = clamp(r2(parseFloat(e.target.value) || 1), Core.isWall(it) ? .3 : .6, 20);
     if (!Core.isWall(it) && Core.itemProblem(room, it)) {
       const s = findFreeSpot(room, it, { x: it.x, y: it.y });
       if (s) { it.x = s.x; it.y = s.y; } else { data = JSON.parse(before); toast('No room for a table that size.'); render(); return; }
@@ -2126,7 +2155,7 @@ function buildPlanSVG(cls, room, opts) {
 
   const visible = room.items.filter(i => !i.hidden);
   const pts = B.slice();
-  for (const it of visible) if (!Core.isWall(it)) { const g = Core.itemGeom(it); pts.push({ x: g.x, y: g.y }, { x: g.x + g.w, y: g.y + g.h }, { x: g.x + g.w, y: g.y }, { x: g.x, y: g.y + g.h }); }
+  for (const it of visible) if (!Core.isWall(it)) { const g = Core.itemGeom(it, room.scale); pts.push({ x: g.x, y: g.y }, { x: g.x + g.w, y: g.y + g.h }, { x: g.x + g.w, y: g.y }, { x: g.x, y: g.y + g.h }); }
   const rp = pts.map(rot);
   const minx = Math.min(...rp.map(p => p.x)), maxx = Math.max(...rp.map(p => p.x));
   const miny = Math.min(...rp.map(p => p.y)), maxy = Math.max(...rp.map(p => p.y));
@@ -2219,16 +2248,16 @@ function buildPlanSVG(cls, room, opts) {
     const w = r.w * s, hh = r.h * s, rx = Math.min(12, Math.min(w, hh) * .28);
     return `<rect x="${f1(-w / 2)}" y="${f1(-hh / 2)}" width="${f1(w)}" height="${f1(hh)}" rx="${f1(rx)}" fill="${fill}" transform="translate(${f1(c.x)} ${f1(c.y)}) rotate(${f1(deg)})" ${extra}/>`;
   };
-  for (const it of visible.filter(i => i.type === 'teacher' || (i.type === 'bench' && !Core.itemGeom(i).seats.length))) {
-    const g = Core.itemGeom(it);
+  for (const it of visible.filter(i => i.type === 'teacher' || (i.type === 'bench' && !Core.itemGeom(i, room.scale).seats.length))) {
+    const g = Core.itemGeom(it, room.scale);
     h += rectSvg(g.table, it.type === 'teacher' ? pal.teacher : '#EEF0EC', `stroke="${pal.ink2}" stroke-opacity=".18" filter="url(#${F}sh)"`);
     const c = T({ x: g.table.x + g.table.w / 2, y: g.table.y + g.table.h / 2 });
     const lbl = it.type === 'teacher' ? "TEACHER'S DESK" : 'BENCH';
     const fs = clamp(Math.min(g.table.w, g.table.h) * s * .2, 8, 11);
     h += `<text x="${f1(c.x)}" y="${f1(c.y + fs * .35)}" font-size="${f1(fs)}" font-weight="600" letter-spacing="1.4" text-anchor="middle" fill="${pal.ink2}">${lbl}</text>`;
   }
-  const tables = visible.filter(i => Core.isSeated(i) && Core.itemGeom(i).seats.length).map(it => {
-    const g = Core.itemGeom(it);
+  const tables = visible.filter(i => Core.isSeated(i) && Core.itemGeom(i, room.scale).seats.length).map(it => {
+    const g = Core.itemGeom(it, room.scale);
     const c = T({ x: g.table.x + g.table.w / 2, y: g.table.y + g.table.h / 2 });
     return { it, g, c };
   }).sort((a, b) => (Math.round(a.c.y / 20) - Math.round(b.c.y / 20)) || (a.c.x - b.c.x));
@@ -2248,27 +2277,47 @@ function buildPlanSVG(cls, room, opts) {
     }
   });
 
-  // name pills
-  const ph = clamp(s * .74, 22, 34);
+  // name pills: sized from real distances (px per metre), then spread along each table edge so
+  // narrow 0.6 m seats still get readable labels, using up to half the aisle on either side
+  const pxPerM = s / (room.scale || .5);
+  const ph = clamp(pxPerM * .37, 22, 34);
   const base = clamp(ph * .46, 10, 15);
   const P = seats.map(st => ({ st, p: T(st) }));
-  const maxW = Math.min(s * 3.4, 190);
-  const tray = [];
-  for (const { st, p } of P) {
-    let w = maxW;
+  const maxW = Math.min(pxPerM * 1.7, 190);
+  const rows = [];
+  for (const o of P) {
+    let r = rows.find(q => q.item === o.st.itemId && Math.abs(q.y - o.p.y) < 2);
+    if (!r) rows.push(r = { item: o.st.itemId, y: o.p.y, m: [] });
+    r.m.push(o);
+  }
+  for (const r of rows) {
+    r.m.sort((a, b) => a.p.x - b.p.x);
+    const minX = r.m[0].p.x, maxX = r.m[r.m.length - 1].p.x, n = r.m.length;
+    let nbL = -Infinity, nbR = Infinity;
     for (const o of P) {
-      if (o.st === st) continue;
-      if (Math.abs(o.p.y - p.y) < ph * 1.05) w = Math.min(w, Math.abs(o.p.x - p.x) - 4);
+      if (o.st.itemId === r.item || Math.abs(o.p.y - r.y) >= ph * 1.05) continue;
+      if (o.p.x <= minX) nbL = Math.max(nbL, o.p.x); else if (o.p.x >= maxX) nbR = Math.min(nbR, o.p.x);
     }
+    const cap = n > 1 ? pxPerM * .6 : maxW / 2;
+    const ext = Math.max(0, Math.min(cap, (minX - nbL) / 2 - 2, (nbR - maxX) / 2 - 2));
+    const left = minX - ext, slot = (maxX - minX + 2 * ext) / n;
+    r.m.forEach((o, k) => {
+      o.cx = n > 1 ? left + (k + .5) * slot : o.p.x;
+      o.w = n > 1 ? slot - 4 : 2 * ext;
+    });
+  }
+  const tray = [];
+  for (const { st, p, cx, w: w0 } of P) {
+    let w = Math.min(w0, maxW);
     const own = tables.find(t => t.it.id === st.itemId);
-    if (own && Math.abs(own.c.y - p.y) < ph / 2 + 12) w = Math.min(w, 2 * (Math.abs(own.c.x - p.x) - 16));
-    w = clamp(w, 44, maxW);
+    if (own && Math.abs(own.c.y - p.y) < ph / 2 + 12) w = Math.min(w, 2 * (Math.abs(own.c.x - cx) - 16));
+    w = clamp(w, 36, maxW);
     const col = colourOf.get(st.itemId) || pal.tables[0];
     const sid = assign[st.key];
     const stu = sid && stById.get(sid);
-    const x = p.x - w / 2;
+    const x = cx - w / 2;
     if (st.unavailable) {
-      tray.push(`<g><rect x="${f1(p.x - 14)}" y="${f1(p.y - 10)}" width="28" height="20" rx="10" fill="#F1F0EC" stroke="#CFCBC2" stroke-dasharray="3 3"/><text x="${f1(p.x)}" y="${f1(p.y + 4)}" font-size="11" text-anchor="middle" fill="#A9A49A">×</text></g>`);
+      tray.push(`<g><rect x="${f1(cx - 14)}" y="${f1(p.y - 10)}" width="28" height="20" rx="10" fill="#F1F0EC" stroke="#CFCBC2" stroke-dasharray="3 3"/><text x="${f1(cx)}" y="${f1(p.y + 4)}" font-size="11" text-anchor="middle" fill="#A9A49A">×</text></g>`);
       continue;
     }
     if (!stu) {
@@ -2284,7 +2333,7 @@ function buildPlanSVG(cls, room, opts) {
     let g = `<g data-seat="${st.key}" data-student="${stu.id}">`;
     g += `<rect x="${f1(x)}" y="${f1(p.y - hh / 2)}" width="${f1(w)}" height="${f1(hh)}" rx="${f1(Math.min(hh, ph) / 2)}" fill="#fff" stroke="${stroke}" stroke-width="${isSel || bad ? 2.6 : 1.5}" filter="url(#${F}shs)"/>`;
     const y0 = p.y - (fit.lines.length - 1) * lh / 2 + fit.fs * .35;
-    fit.lines.forEach((ln, i) => { g += `<text x="${f1(p.x)}" y="${f1(y0 + i * lh)}" font-size="${f1(fit.fs)}" font-weight="500" text-anchor="middle" fill="${pal.ink}">${esc(ln)}</text>`; });
+    fit.lines.forEach((ln, i) => { g += `<text x="${f1(cx)}" y="${f1(y0 + i * lh)}" font-size="${f1(fit.fs)}" font-weight="500" text-anchor="middle" fill="${pal.ink}">${esc(ln)}</text>`; });
     if (priv) {
       const top = p.y - hh / 2;
       if (stu.front) g += `<circle cx="${f1(x + 5)}" cy="${f1(top + 3)}" r="7.5" fill="#F6C343" stroke="#fff" stroke-width="1.5"/><path d="${starPath(x + 5, top + 3, 4.6)}" fill="#fff"/>`;
@@ -2538,7 +2587,7 @@ async function dataMenu() {
     ],
   });
   if (v === 'export') {
-    const blob = new Blob([JSON.stringify({ app: 'seating-planner', version: 1, exportedAt: new Date().toISOString(), rooms: data.rooms, classes: data.classes }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'seating-planner', version: 2, exportedAt: new Date().toISOString(), rooms: data.rooms, classes: data.classes }, null, 2)], { type: 'application/json' });
     download(blob, `seating-planner-backup-${new Date().toISOString().slice(0, 10)}.json`);
   }
   if (v === 'import') $('#importFile').click();
@@ -2607,8 +2656,9 @@ document.addEventListener('keydown', e => {
   else if (e.key.startsWith('Arrow')) {
     e.preventDefault();
     const room = activeRoom(), it = getItem(room, ui.selItem);
-    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    const t = { ...it, x: it.x + d[0], y: it.y + d[1] };
+    const k = fstep(room);
+    const d = { ArrowLeft: [-k, 0], ArrowRight: [k, 0], ArrowUp: [0, -k], ArrowDown: [0, k] }[e.key];
+    const t = { ...it, x: r2(it.x + d[0]), y: r2(it.y + d[1]) };
     if (Core.isWall(it)) { mutate(() => snapWallItem(room, it, { x: it.x + d[0], y: it.y + d[1] })); return; }
     if (Core.itemProblem(room, t)) return toast("Can't move it there.");
     mutate(() => { it.x = t.x; it.y = t.y; });
@@ -2618,7 +2668,14 @@ document.addEventListener('keydown', e => {
 function init() {
   const stored = readJSON(STORE_KEY);
   if (stored && Array.isArray(stored.rooms) && Array.isArray(stored.classes)) {
-    data = { version: 1, ...stored, rooms: stored.rooms.map(normRoom), classes: stored.classes.map(normClass) };
+    data = { ...stored, rooms: stored.rooms.map(normRoom), classes: stored.classes.map(normClass) };
+    if ((stored.version || 1) < 2) {
+      // v1 furniture was oversized; swap the untouched sample rooms for the realistically sized ones (same ids, so plans still fit)
+      const fresh = Sample.rooms().map(normRoom);
+      data.rooms = data.rooms.map(r => (r.sample && fresh.find(f => f.id === r.id)) || r);
+      data.version = 2;
+      save();
+    }
   } else {
     data = freshData();
     // pre-generate the sample so the plan tab shows something straight away
