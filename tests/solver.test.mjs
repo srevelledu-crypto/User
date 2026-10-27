@@ -186,6 +186,21 @@ test('Furniture outside an L-shaped boundary is rejected', () => {
   assert.equal(Core.itemProblem(r, straddle), 'outside');
 });
 
+test('Round table of 4: seats evenly around a 4×4 footprint, keep-apart honoured', () => {
+  const g = Core.itemGeom({ id: 'rt', type: 'round4', x: 2, y: 3 });
+  assert.equal(g.w, 4); assert.equal(g.h, 4); assert.equal(g.seats.length, 4);
+  for (const s of g.seats) assert.equal(Math.hypot(s.x - 4, s.y - 5), 1.5);
+  const r = { id: 'r', boundary: [{ x: 0, y: 0 }, { x: 16, y: 0 }, { x: 16, y: 10 }, { x: 0, y: 10 }], items: [
+    { id: 'bd', type: 'board', x: 8, y: 0, len: 4 },
+    { id: 'rA', type: 'round4', x: 1, y: 3 }, { id: 'rB', type: 'round4', x: 11, y: 3 }] };
+  for (const it of r.items) assert.equal(Core.itemProblem(r, it), null);
+  const st = ['A', 'B', 'C', 'D', 'E'].map(n => ({ id: n, name: n }));
+  const res = Core.solve({ seats: Core.roomSeats(r), students: st, rules: [{ id: 'x', type: 'apart', members: ['A', 'B'] }], seed: 4 });
+  assert.ok(res.ok);
+  const tableOf = id => Object.keys(res.assignment).find(k => res.assignment[k] === id).split(':')[0];
+  assert.notEqual(tableOf('A'), tableOf('B'));
+});
+
 test('Sample room furniture is valid', () => {
   for (const it of room.items) assert.equal(Core.itemProblem(room, it), null, it.id);
 });

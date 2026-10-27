@@ -448,6 +448,7 @@ const Core = (() => {
     pair:    { label: 'Pair desk',     tw: 4, th: 1, sides: { t: 0, b: 2, l: 0, r: 0 }, seated: true },
     group4:  { label: 'Table of 4',    tw: 4, th: 2, sides: { t: 2, b: 2, l: 0, r: 0 }, seated: true },
     group6:  { label: 'Table of 6',    tw: 6, th: 2, sides: { t: 3, b: 3, l: 0, r: 0 }, seated: true },
+    round4:  { label: 'Round table (4)', tw: 2, th: 2, sides: { t: 1, b: 1, l: 1, r: 1 }, seated: true, round: true },
     custom:  { label: 'Custom table',  seated: true },
     bench:   { label: 'Lab bench',     seated: true },
     teacher: { label: "Teacher's desk", tw: 4, th: 2, sides: { t: 0, b: 0, l: 0, r: 0 } },
@@ -457,6 +458,7 @@ const Core = (() => {
   };
   const isWall = it => !!(TYPES[it.type] && TYPES[it.type].wall);
   const isSeated = it => !!(TYPES[it.type] && TYPES[it.type].seated);
+  const isRound = it => !!(TYPES[it.type] && TYPES[it.type].round);
 
   function normSides(s) {
     s = s || {};
@@ -902,7 +904,7 @@ const Core = (() => {
   }
 
   return {
-    TYPES, ADJ_DIST, isWall, isSeated, tableDims, itemGeom, wallGeom, roomSeats, itemProblem, rectInside,
+    TYPES, ADJ_DIST, isWall, isSeated, isRound, tableDims, itemGeom, wallGeom, roomSeats, itemProblem, rectInside,
     pointInPoly, projectToSeg, polyArea, selfIntersects, seatsConflict, solve, checkPlan, mulberry32, shuffle, boardOf, clamp,
   };
 })();
@@ -1174,12 +1176,13 @@ function render() {
    1. ROOM BUILDER
 ================================================================= */
 const svg = $('#roomSvg');
-const PALETTE_ITEMS = ['single', 'pair', 'group4', 'group6', 'custom', 'bench', 'teacher', 'board', 'door', 'window'];
+const PALETTE_ITEMS = ['single', 'pair', 'group4', 'group6', 'round4', 'custom', 'bench', 'teacher', 'board', 'door', 'window'];
 const ICONS = {
   single: '<rect x="15" y="5" width="14" height="9" rx="2" fill="#EDE6DA" stroke="#B9AE9C"/><circle cx="22" cy="21" r="4" fill="#fff" stroke="#8D93A0"/>',
   pair: '<rect x="6" y="5" width="32" height="9" rx="2" fill="#EDE6DA" stroke="#B9AE9C"/><circle cx="14" cy="21" r="4" fill="#fff" stroke="#8D93A0"/><circle cx="30" cy="21" r="4" fill="#fff" stroke="#8D93A0"/>',
   group4: '<rect x="8" y="9" width="28" height="12" rx="2" fill="#EDE6DA" stroke="#B9AE9C"/><g fill="#fff" stroke="#8D93A0"><circle cx="15" cy="5" r="3.5"/><circle cx="29" cy="5" r="3.5"/><circle cx="15" cy="25" r="3.5"/><circle cx="29" cy="25" r="3.5"/></g>',
   group6: '<rect x="4" y="9" width="36" height="12" rx="2" fill="#EDE6DA" stroke="#B9AE9C"/><g fill="#fff" stroke="#8D93A0"><circle cx="10" cy="5" r="3.5"/><circle cx="22" cy="5" r="3.5"/><circle cx="34" cy="5" r="3.5"/><circle cx="10" cy="25" r="3.5"/><circle cx="22" cy="25" r="3.5"/><circle cx="34" cy="25" r="3.5"/></g>',
+  round4: '<circle cx="22" cy="15" r="8" fill="#EDE6DA" stroke="#B9AE9C"/><g fill="#fff" stroke="#8D93A0"><circle cx="22" cy="3.5" r="3"/><circle cx="22" cy="26.5" r="3"/><circle cx="8" cy="15" r="3"/><circle cx="36" cy="15" r="3"/></g>',
   custom: '<rect x="11" y="8" width="22" height="14" rx="2" fill="#EDE6DA" stroke="#B9AE9C"/><g fill="#fff" stroke="#8D93A0"><circle cx="22" cy="4" r="3"/><circle cx="22" cy="26" r="3"/><circle cx="6" cy="15" r="3"/><circle cx="38" cy="15" r="3"/></g>',
   bench: '<rect x="3" y="9" width="38" height="11" rx="2" fill="#DDE7E3" stroke="#93ADA3"/><circle cx="12" cy="25" r="3" fill="#fff" stroke="#8D93A0"/><circle cx="32" cy="25" r="3" fill="#fff" stroke="#8D93A0"/>',
   teacher: '<rect x="8" y="5" width="28" height="13" rx="2" fill="#DCE3EE" stroke="#8E9BB2"/><circle cx="22" cy="24" r="4" fill="#8E9BB2"/>',
@@ -1373,7 +1376,9 @@ function builderItem(room, it, seatInfo) {
   const tcls = it.type === 'teacher' ? 'b-teacher' : it.type === 'bench' ? 'b-bench' : 'b-table';
   let h = `<g class="${cls}" data-item="${it.id}" ${preview ? 'opacity=".7"' : ''}>`;
   h += `<rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" fill="transparent"/>`;
-  h += `<rect class="${tcls}" x="${g.table.x}" y="${g.table.y}" width="${g.table.w}" height="${g.table.h}" rx=".18"/>`;
+  h += Core.isRound(it)
+    ? `<circle class="${tcls}" cx="${g.table.x + g.table.w / 2}" cy="${g.table.y + g.table.h / 2}" r="${g.table.w / 2 + .15}"/>`
+    : `<rect class="${tcls}" x="${g.table.x}" y="${g.table.y}" width="${g.table.w}" height="${g.table.h}" rx=".18"/>`;
   const cx = g.table.x + g.table.w / 2, cy = g.table.y + g.table.h / 2;
   if (it.type === 'teacher') h += `<text class="b-label" x="${cx}" y="${cy}">Teacher</text>`;
   else if (it.type === 'bench' && !g.seats.length) h += `<text class="b-label" x="${cx}" y="${cy}">Bench</text>`;
@@ -2232,7 +2237,9 @@ function buildPlanSVG(cls, room, opts) {
   tables.forEach((t, i) => {
     const col = pal.tables[i % pal.tables.length];
     colourOf.set(t.it.id, col);
-    h += rectSvg(t.g.table, col, `filter="url(#${F}sh)"`);
+    h += Core.isRound(t.it)
+      ? `<circle cx="${f1(t.c.x)}" cy="${f1(t.c.y)}" r="${f1((t.g.table.w / 2 + .15) * s)}" fill="${col}" filter="url(#${F}sh)"/>`
+      : rectSvg(t.g.table, col, `filter="url(#${F}sh)"`);
     const minDim = Math.min(t.g.table.w, t.g.table.h) * s;
     if (minDim >= 26) {
       const r = clamp(minDim * .2, 8, 12);
@@ -2253,6 +2260,8 @@ function buildPlanSVG(cls, room, opts) {
       if (o.st === st) continue;
       if (Math.abs(o.p.y - p.y) < ph * 1.05) w = Math.min(w, Math.abs(o.p.x - p.x) - 4);
     }
+    const own = tables.find(t => t.it.id === st.itemId);
+    if (own && Math.abs(own.c.y - p.y) < ph / 2 + 12) w = Math.min(w, 2 * (Math.abs(own.c.x - p.x) - 16));
     w = clamp(w, 44, maxW);
     const col = colourOf.get(st.itemId) || pal.tables[0];
     const sid = assign[st.key];
