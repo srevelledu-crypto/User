@@ -2442,6 +2442,8 @@ function buildPlanSVG(cls, room, opts) {
       }
     });
   }
+  // turned labels read towards the board (top-to-bottom when the board is at the bottom of the page)
+  const turnDeg = view.boardSide.startsWith('top') ? -90 : 90;
   const tray = [];
   for (const o of P) {
     const { st, p, w } = o;
@@ -2458,7 +2460,7 @@ function buildPlanSVG(cls, room, opts) {
       if (!opts.interactive) { tray.push(`<circle cx="${f1(p.x)}" cy="${f1(p.y)}" r="5" fill="none" stroke="${shade(col, -18, 5)}" stroke-opacity=".55" stroke-width="1.2"/>`); continue; }
       const hh = o.h, cy = o.cy ?? (o.dir === 'U' ? o.edge - 2 - hh / 2 : o.edge + 2 + hh / 2);
       const bw = o.turned ? Math.max(o.len, 30) : w, bh = o.turned ? o.t : hh;
-      tray.push(`<g data-seat="${st.key}"${o.turned ? ` transform="rotate(-90 ${f1(o.cx)} ${f1(cy)})"` : ''}><rect x="${f1(o.cx - bw / 2)}" y="${f1(cy - bh / 2)}" width="${f1(bw)}" height="${f1(bh)}" rx="${f1(bh / 2)}" fill="#fff" fill-opacity=".55" stroke="${shade(col, -22, 5)}" stroke-width="1.2" stroke-dasharray="4 4"/></g>`);
+      tray.push(`<g data-seat="${st.key}"${o.turned ? ` transform="rotate(${turnDeg} ${f1(o.cx)} ${f1(cy)})"` : ''}><rect x="${f1(o.cx - bw / 2)}" y="${f1(cy - bh / 2)}" width="${f1(bw)}" height="${f1(bh)}" rx="${f1(bh / 2)}" fill="#fff" fill-opacity=".55" stroke="${shade(col, -22, 5)}" stroke-width="1.2" stroke-dasharray="4 4"/></g>`);
       continue;
     }
     if (o.turned) {
@@ -2469,7 +2471,7 @@ function buildPlanSVG(cls, room, opts) {
       const isSel = opts.interactive && ui.selStudent === stu.id;
       const bad = priv && violSeats.has(st.key);
       const stroke = isSel ? pal.accent : bad ? '#D1495B' : shade(col, -22, 8);
-      let g = `<g data-seat="${st.key}" data-student="${stu.id}" transform="rotate(-90 ${f1(cx)} ${f1(cy)})">`;
+      let g = `<g data-seat="${st.key}" data-student="${stu.id}" transform="rotate(${turnDeg} ${f1(cx)} ${f1(cy)})">`;
       g += `<rect x="${f1(x)}" y="${f1(top)}" width="${f1(L)}" height="${f1(t)}" rx="${f1(t / 2)}" fill="#fff" stroke="${stroke}" stroke-width="${isSel || bad ? 2.6 : 1.5}" filter="url(#${F}shs)"/>`;
       g += `<text x="${f1(cx)}" y="${f1(cy + fit.fs * .35)}" font-size="${f1(fit.fs)}" font-weight="500" text-anchor="middle" fill="${pal.ink}">${esc(fit.lines[0])}</text>`;
       if (priv) {
