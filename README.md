@@ -17,9 +17,17 @@ with what's already there or replace it.
 2. **Students & Rules**: paste names (one per line; `Surname, First` and
    tab-separated columns are handled). Mark front-priority students. To build
    rules, tap name chips and choose **Keep apart** or **Keep together**.
-3. **Seating Plan**: **Generate** or **Shuffle**. Drag names to swap seats or
-   to unseat someone. Tap a name to lock it to its seat. Then **Print A4**,
-   **PNG** or **PDF**.
+3. **Seating Plan**: **Generate** or **Shuffle**. Seats always fill from the
+   front row backwards. Drag names to swap seats or to unseat someone. Tap a
+   name to lock it to its seat. Use **⟲/⟳ 90°** to turn the plan until it reads
+   well, then **Print A4**, **PNG** or **PDF**.
+
+The plan only turns in 90° steps, so tables always stay square to the page. If
+the board is on an angled wall, it picks whichever orientation fills the A4
+landscape page best. Names default to first name plus surname initial
+("Charlotte N."). The ★ front-priority, 🔒 locked, ! broken-rule and ✕
+unavailable-seat markers appear on screen while you edit. They never appear on
+the printed, PNG or PDF plan.
 
 Shortcuts (Room tab): `R` rotates, `Del` deletes, `Ctrl/⌘+D` duplicates, and
 the arrow keys nudge. `Shift` while drawing walls turns off snapping. Undo and
@@ -58,10 +66,13 @@ height (e.g. 85 cm lab-height benches with stools) doesn't affect a floor plan.
   with forward checking then seats front-priority students, trying the seats
   closest to the board first. Everyone else is seated "fewest remaining options
   first", in random order.
-- **Filling from the front.** Only the N front-most seats are used at first.
-  The search widens to seats further back only if the rules need more space.
-  If it doesn't find an arrangement within a node limit, it restarts with a new
-  random order.
+- **Filling from the front.** "Distance from front" is measured straight
+  back from the board's wall, so a whole row parallel to the board counts as
+  one row. Only the N front-most seats are used at first, and the search widens
+  to seats further back only if the rules need more space. If it doesn't find
+  an arrangement within a node limit, it restarts with a new random order.
+  After solving, students are moved forward into any empty seat in a nearer
+  row whenever no rule would break, so empty seats end up at the back.
 - **Impossible rule sets.** Pre-checks catch the clear-cut cases, such as
   locked students who break a rule, or a group bigger than the number of
   tables. Otherwise the solver finds the smallest set of rules that can't all

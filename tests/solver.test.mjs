@@ -230,6 +230,47 @@ test('"Adjacent" is 1.5 m in real distance, not grid squares', () => {
   assert.ok(!Core.seatsConflict(a, b, 'table'));
 });
 
+test('Front-first: with spare seats, every occupied row is nearer the board than every empty one', () => {
+  const few = cls.students.slice(0, 17).map(s => ({ ...s, front: false }));
+  for (let seed = 1; seed <= 100; seed++) {
+    const res = Core.solve({ seats, students: few, rules: [], seed });
+    const used = avail.filter(s => res.assignment[s.key]), empty = avail.filter(s => !res.assignment[s.key]);
+    const back = Math.max(...used.map(s => s.dist)), front = Math.min(...empty.map(s => s.dist));
+    assert.ok(back <= front + 1e-9, `seed ${seed}: occupied seat at ${back} behind an empty one at ${front}`);
+  }
+});
+
+test('Front-first with keep-apart rules: no student could move into an emptier front row without breaking a rule', () => {
+  const few = cls.students.slice(0, 20);
+  const rules = apartRules.map(r => ({ ...r, members: r.members.filter(id => few.some(s => s.id === id)) })).filter(r => r.members.length >= 2);
+  for (let seed = 1; seed <= 60; seed++) {
+    const res = Core.solve({ seats, students: few, rules, seed });
+    assert.ok(res.ok);
+    const empty = avail.filter(s => !res.assignment[s.key]);
+    for (const [k, id] of Object.entries(res.assignment)) {
+      const from = seats.find(s => s.key === k);
+      for (const e of empty) {
+        if (Math.round(e.dist * 4) >= Math.round(from.dist * 4)) continue;
+        const trial = { ...res.assignment }; delete trial[k]; trial[e.key] = id;
+        assert.ok(Core.checkPlan({ seats, assignment: trial, rules, mode: 'adjacent' }).length > 0, `seed ${seed}: ${id} could move forward`);
+      }
+    }
+  }
+});
+
+test('Angled board wall: rows are measured straight back from the board, so a whole row ties', () => {
+  // board on a 45° wall; two desks side by side in the same row parallel to it
+  const r = { scale: 0.5, boundary: [{ x: 0, y: 6 }, { x: 6, y: 0 }, { x: 30, y: 0 }, { x: 30, y: 30 }, { x: 0, y: 30 }], items: [
+    { id: 'bd', type: 'board', x: 3, y: 3, lenM: 1.5 }] };
+  const geo = Core.wallGeom(r, r.items[0]);
+  const along = { x: geo.p2.x - geo.p1.x, y: geo.p2.y - geo.p1.y }, L = Math.hypot(along.x, along.y);
+  const pt = (t, d) => ({ x: geo.mid.x + along.x / L * t - geo.n.x * d, y: geo.mid.y + along.y / L * t - geo.n.y * d });
+  const sA = pt(0, 4), sB = pt(10, 4); // same row, one far off to the side of the short board
+  r.items.push({ id: 'a', type: 'single', x: sA.x - 0.7, y: sA.y - 2.5 }, { id: 'b', type: 'single', x: sB.x - 0.7, y: sB.y - 2.5 });
+  const ss = Core.roomSeats(r);
+  assert.ok(Math.abs(ss[0].dist - ss[1].dist) < 1e-6, `${ss[0].dist} vs ${ss[1].dist}`);
+});
+
 test('Sample room furniture is valid', () => {
   for (const it of room.items) assert.equal(Core.itemProblem(room, it), null, it.id);
 });

@@ -382,13 +382,17 @@ kbd { font: 11px Inter, sans-serif; border: 1px solid var(--line-2); border-bott
           <button data-p="teacher">Teacher's view</button>
           <button data-p="student">Student's view</button>
         </div>
+        <div class="row">
+          <span class="grow small" style="font-weight:500">Rotate plan</span>
+          <button class="btn sm" id="rotL" title="Rotate 90° anticlockwise">⟲ 90°</button>
+          <button class="btn sm" id="rotR" title="Rotate 90° clockwise">⟳ 90°</button>
+        </div>
         <div class="hint" id="perspHint"></div>
-        <label class="check"><input type="checkbox" id="showPrivate"> Show rule markers on screen</label>
-        <label class="check"><input type="checkbox" id="hidePrivate"> Hide private markers when printing/exporting</label>
         <label class="field"><span>Names on plan</span>
-          <select class="input" id="nameFormat"><option value="full">Full name (wraps to fit)</option><option value="initial">First name + surname initial</option><option value="first">First name only</option></select></label>
-        <label class="field"><span>Empty seats</span>
-          <select class="input" id="fillSelect"><option value="front">Fill from the front</option><option value="random">Spread randomly</option></select></label>
+          <select class="input" id="nameFormat"><option value="initial">First name + surname initial</option><option value="full">Full name (wraps to fit)</option><option value="first">First name only</option></select></label>
+        <label class="check"><input type="checkbox" id="showPrivate"> Show editing markers on screen</label>
+        <div class="hint">★ front priority, 🔒 locked, ! broken rule and ✕ unavailable seats are only ever shown here while editing. They never appear on the printed, PNG or PDF plan.</div>
+        <div class="hint">Seats always fill from the front row backwards; empty seats end up at the back.</div>
       </div>
       <div class="section">
         <h2>Theme</h2>
@@ -632,7 +636,8 @@ const Core = (() => {
     for (const it of tables) {
       const g = itemGeom(it, room.scale);
       for (const s of g.seats) {
-        const dist = bg ? projectToSeg(s, bg.p1, bg.p2).d : s.y - minY;
+        // rows run parallel to the board: measure straight back from the board's wall line
+        const dist = bg ? Math.max(0, (bg.mid.x - s.x) * bg.n.x + (bg.mid.y - s.y) * bg.n.y) : s.y - minY;
         seats.push({ key: s.key, itemId: it.id, x: s.x, y: s.y, dist, unavailable: s.unavailable, spacing: s.spacing, side: s.side, scale: room.scale || 0.5 });
       }
     }
@@ -858,6 +863,7 @@ const Core = (() => {
     const ruleOk = activeRules.filter(r => !preBad.has(r.id));
     let assignment = preBad.size ? null : trySolve(activeRules, FULL);
     let conflictRules = [], brokenRules = [];
+    let finalRules = activeRules;
 
     if (!assignment) {
       // find a minimal set of rules that can't be satisfied together (deletion filter)
@@ -883,7 +889,45 @@ const Core = (() => {
         if (trySolve([...kept, r], QUICK)) kept.push(r); else brokenRules.push(r);
       }
       brokenRules.push(...activeRules.filter(r => preBad.has(r.id)));
-      assignment = trySolve(kept, FULL) || trySolve([], FULL) || {};
+      assignment = trySolve(kept, FULL);
+      finalRules = kept;
+      if (!assignment) { assignment = trySolve([], FULL) || {}; finalRules = []; }
+    }
+    if (fill === 'front') compactForward(assignment, finalRules);
+
+    /* Fill from the front: while an empty seat sits in a row nearer the board than an occupied one,
+       move a student forward into it (front-priority students first, then whoever is furthest back),
+       as long as every rule the plan honours still holds. Locked students never move. */
+    function compactForward(asg, ruleSet) {
+      const occ = new Map(), at = new Map();
+      for (const [k, id] of Object.entries(asg)) { const i = seatIdx.get(k); occ.set(i, id); at.set(id, i); }
+      const apartP = new Map(), togP = new Map();
+      for (const r of ruleSet) for (const a of r.members) for (const b of r.members) {
+        if (a === b) continue;
+        const m = r.type === 'apart' ? apartP : togP;
+        if (!m.has(a)) m.set(a, []);
+        m.get(a).push(b);
+      }
+      const row = i => Math.round(seats[i].dist * 4);
+      const canMove = (id, to) => (apartP.get(id) || []).every(q => !at.has(q) || !conf[to][at.get(q)])
+        && (togP.get(id) || []).every(q => !at.has(q) || seats[at.get(q)].itemId === seats[to].itemId);
+      for (let guard = 0; guard < S * S; guard++) {
+        let moved = false;
+        for (const e of seatOrder) {
+          if (occ.has(e)) continue;
+          const cands = [...occ.entries()].filter(([i, id]) => row(i) > row(e) && !locked.has(id))
+            .sort((a, b) => (+!!byId.get(b[1]).front - +!!byId.get(a[1]).front) || (seats[b[0]].dist - seats[a[0]].dist));
+          for (const [i, id] of cands) {
+            if (!canMove(id, e)) continue;
+            occ.delete(i); occ.set(e, id); at.set(id, e); moved = true;
+            break;
+          }
+          if (moved) break;
+        }
+        if (!moved) break;
+      }
+      for (const k of Object.keys(asg)) delete asg[k];
+      for (const [i, id] of occ) asg[seats[i].key] = id;
     }
 
     return {
@@ -992,7 +1036,7 @@ const Sample = (() => {
     rules.push({ id: 'rt0', type: 'together', members: [id('Sophie'), id('Chloe')] });
     return [{
       id: 'class_10sci', name: '10SCI', roomId: 'room_b12', sample: true, teacher: 'Ms Delaney', date: '', roomLabel: '',
-      students, rules, adjacency: 'adjacent', fill: 'front', perspective: 'teacher', palette: 'pastel', hidePrivate: true,
+      students, rules, adjacency: 'adjacent', fill: 'front', perspective: 'teacher', palette: 'pastel',
       plan: { assign: {} },
     }];
   }
@@ -1056,7 +1100,7 @@ function normRoom(r) {
   return out;
 }
 function normClass(c) {
-  const out = Object.assign({ id: uid('class'), name: 'Class', roomId: null, teacher: '', date: '', roomLabel: '', students: [], rules: [], adjacency: 'adjacent', fill: 'front', perspective: 'teacher', palette: 'pastel', hidePrivate: true, nameFormat: 'full', plan: { assign: {} } }, c);
+  const out = Object.assign({ id: uid('class'), name: 'Class', roomId: null, teacher: '', date: '', roomLabel: '', students: [], rules: [], adjacency: 'adjacent', fill: 'front', perspective: 'teacher', palette: 'pastel', nameFormat: 'initial', planRot: 0, plan: { assign: {} } }, c);
   out.plan = out.plan && typeof out.plan === 'object' ? out.plan : { assign: {} };
   out.plan.assign = out.plan.assign || {};
   out.students = (out.students || []).map(s => Object.assign({ id: uid('st'), name: '', front: false, lock: null }, s));
@@ -1064,7 +1108,7 @@ function normClass(c) {
   return out;
 }
 function freshData() {
-  return { version: 2, rooms: Sample.rooms().map(normRoom), classes: Sample.classes().map(normClass), activeRoomId: 'room_b12', activeClassId: 'class_10sci' };
+  return { version: 3, rooms: Sample.rooms().map(normRoom), classes: Sample.classes().map(normClass), activeRoomId: 'room_b12', activeClassId: 'class_10sci' };
 }
 function fixRefs() {
   if (!data.rooms.length) data.rooms.push(blankRoom());
@@ -1995,7 +2039,7 @@ function generate(isShuffle) {
   const prev = JSON.stringify(cls.plan.assign);
   let res;
   for (let i = 0; i < 6; i++) {
-    res = Core.solve({ seats, students: cls.students, rules: cls.rules, mode: cls.adjacency, fill: cls.fill, label: r => ruleLabel(cls, r) });
+    res = Core.solve({ seats, students: cls.students, rules: cls.rules, mode: cls.adjacency, fill: 'front', label: r => ruleLabel(cls, r) });
     if (!isShuffle || JSON.stringify(res.assignment) !== prev) break;
   }
   ui.result = { classId: cls.id, ...res };
@@ -2043,11 +2087,9 @@ function renderPlanTab() {
   const viol = room ? Core.checkPlan({ seats, assignment: cls.plan.assign, rules: cls.rules, mode: cls.adjacency }) : [];
   $('#planMsgs').innerHTML = planMessages(cls, room, seats, viol);
   $$('#perspSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === cls.perspective));
-  $('#perspHint').textContent = cls.perspective === 'teacher' ? "Board at the bottom: the room as you see it from the front." : 'Board at the top: the room as students see it.';
+  $('#perspHint').textContent = room ? `Board at the ${planView(cls, room).boardSide} of the page.` : '';
   $('#showPrivate').checked = ui.showPrivate;
-  $('#hidePrivate').checked = !!cls.hidePrivate;
-  $('#fillSelect').value = cls.fill;
-  $('#nameFormat').value = cls.nameFormat || 'full';
+  $('#nameFormat').value = cls.nameFormat || 'initial';
   $('#paletteSwatches').innerHTML = Object.entries(PALETTES).map(([k, p]) => `<button class="swatch ${cls.palette === k ? 'on' : ''}" data-pal="${k}"><span class="dots">${p.tables.slice(0, 6).map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(p.name)}</button>`).join('');
   const setIf = (sel, v) => { if (document.activeElement !== $(sel)) $(sel).value = v; };
   setIf('#hdrTitle', cls.name);
@@ -2079,14 +2121,14 @@ function renderPlanTab() {
 const mctx = document.createElement('canvas').getContext('2d');
 function measure(text, weight, size) { mctx.font = `${weight} ${size}px ${FONT_STACK}`; return mctx.measureText(text).width; }
 function joinTokens(toks) { return toks.reduce((s, t) => s + (s && !s.endsWith('-') ? ' ' : '') + t, ''); }
-function fitName(name, maxW, base, abbrev) {
+function fitName(name, maxW, base, abbrev, maxLines = 3) {
   const min1 = Math.max(8.5, base * .74);
   for (let fs = base; fs >= min1; fs -= .5) if (measure(name, 500, fs) <= maxW) return { lines: [name], fs };
   // wrap at spaces and after hyphens: try 2 lines, then 3
   const toks = name.replace(/-/g, '-\u0000').split(/\s+|\u0000/).filter(Boolean);
   const minW = Math.max(7.5, base * .6);
   for (const n of [2, 3]) {
-    if (toks.length < n) break;
+    if (toks.length < n || n > maxLines) break;
     let best = null;
     const consider = lines => { const w = Math.max(...lines.map(l => measure(l, 500, base))); if (!best || w < best.w) best = { lines, w }; };
     for (let i = 1; i < toks.length; i++) {
@@ -2100,7 +2142,7 @@ function fitName(name, maxW, base, abbrev) {
   // still too long: abbreviate the surname ("Alexandria P.") before truncating
   const parts = name.trim().split(/\s+/);
   if (parts.length > 1 && !abbrev) {
-    const short = fitName(`${parts[0]} ${parts[parts.length - 1][0]}.`, maxW, base, true);
+    const short = fitName(`${parts[0]} ${parts[parts.length - 1][0]}.`, maxW, base, true, maxLines);
     if (!short.lines[0].endsWith('…')) return short;
   }
   let t = name;
@@ -2109,7 +2151,7 @@ function fitName(name, maxW, base, abbrev) {
 }
 function displayName(cls, st) {
   const parts = st.name.trim().split(/\s+/);
-  if (cls.nameFormat === 'initial' && parts.length > 1) return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+  if ((cls.nameFormat || 'initial') === 'initial' && parts.length > 1) return `${parts[0]} ${parts[parts.length - 1][0]}.`;
   if (cls.nameFormat === 'first') return shortName(cls, st.id);
   return st.name;
 }
@@ -2130,6 +2172,32 @@ function hexToHsl(hex) {
 function shade(hex, dl, ds = 0) { const [h, s, l] = hexToHsl(hex); return `hsl(${h.toFixed(0)} ${clamp(s + ds, 0, 100).toFixed(0)}% ${clamp(l + dl, 0, 100).toFixed(0)}%)`; }
 
 /* ---------- the printable plan (A4 landscape, SVG) ---------- */
+/* Page orientation. Furniture is always square to the room, so the plan only ever turns in
+   90° steps: the step that best puts the board at the bottom (teacher's view) or top (student's
+   view), plus any quarter turns chosen with the rotate buttons. */
+function planView(cls, room) {
+  const board = Core.boardOf(room);
+  const bg = board ? Core.wallGeom(room, board) : null;
+  const n = bg ? bg.n : { x: 0, y: -1 };
+  const ideal = (cls.perspective === 'student' ? -Math.PI / 2 : Math.PI / 2) - Math.atan2(n.y, n.x);
+  const rotQ = q => { const c = [1, 0, -1, 0][q], sn = [0, 1, 0, -1][q]; return p => ({ x: p.x * c - p.y * sn, y: p.x * sn + p.y * c }); };
+  const mod4 = q => ((q % 4) + 4) % 4;
+  const q0 = Math.round(ideal / (Math.PI / 2)), off = ideal / (Math.PI / 2) - q0;
+  let best = q0;
+  if (Math.abs(off) > .35) {
+    // board on a near-diagonal wall: both neighbouring 90° steps are equally "board at the bottom",
+    // so use the one that makes the room largest on the A4 landscape page
+    const fit = q => { const rp = room.boundary.map(rotQ(mod4(q))); const w = Math.max(...rp.map(p => p.x)) - Math.min(...rp.map(p => p.x)), h = Math.max(...rp.map(p => p.y)) - Math.min(...rp.map(p => p.y)); return Math.min(1076 / w, 640 / h); };
+    const q1 = q0 + Math.sign(off);
+    if (fit(q1) > fit(q0) * 1.02) best = q1;
+  }
+  const quarter = mod4(best + (cls.planRot || 0));
+  const rot = rotQ(quarter);
+  const r = rot(n);
+  const vs = r.y > 0 ? 'bottom' : 'top', hs = r.x > 0 ? 'right' : 'left';
+  const boardSide = Math.abs(Math.abs(r.y) - Math.abs(r.x)) < .3 ? `${vs}-${hs} corner` : Math.abs(r.y) > Math.abs(r.x) ? vs : hs;
+  return { rot, deg: quarter * 90, boardSide };
+}
 const PAGE_W = 1188, PAGE_H = 840;
 function buildPlanSVG(cls, room, opts) {
   const pal = PALETTES[cls.palette] || PALETTES.pastel;
@@ -2141,17 +2209,10 @@ function buildPlanSVG(cls, room, opts) {
   const violSeats = new Set((opts.viol || []).flatMap(v => v.seats));
   const B = room.boundary;
 
-  // rotate so the board faces the right way
   const board = Core.boardOf(room);
   const bg = board ? Core.wallGeom(room, board) : null;
-  let theta;
-  if (bg) theta = (cls.perspective === 'student' ? -Math.PI / 2 : Math.PI / 2) - Math.atan2(bg.n.y, bg.n.x);
-  else theta = cls.perspective === 'teacher' ? Math.PI : 0;
-  const q = Math.round(theta / (Math.PI / 2)) * (Math.PI / 2);
-  if (Math.abs(theta - q) < 1e-6) theta = q;
-  const cos = Math.cos(theta), sin = Math.sin(theta);
-  const rot = p => ({ x: p.x * cos - p.y * sin, y: p.x * sin + p.y * cos });
-  const deg = theta * 180 / Math.PI;
+  const view = planView(cls, room);
+  const { rot, deg } = view;
 
   const visible = room.items.filter(i => !i.hidden);
   const pts = B.slice();
@@ -2238,8 +2299,8 @@ function buildPlanSVG(cls, room, opts) {
     h += `<rect x="${f1(m.x - lw / 2)}" y="${f1(m.y - 14)}" width="${f1(lw)}" height="28" rx="14" fill="${pal.board}" filter="url(#${F}shs)"/>`;
     h += `<text x="${f1(m.x)}" y="${f1(m.y + 4.3)}" font-size="12" font-weight="600" letter-spacing="2.2" text-anchor="middle" fill="#fff">${lbl}</text>`;
   } else if (!bg) {
-    const fy = cls.perspective === 'teacher' ? AY + AH + 8 : AY - 8;
-    h += `<text x="${PAGE_W / 2}" y="${fy}" font-size="12" font-weight="600" letter-spacing="2.2" text-anchor="middle" fill="${pal.ink2}">FRONT</text>`;
+    const pos = { bottom: [PAGE_W / 2, AY + AH + 8], top: [PAGE_W / 2, AY - 8], left: [AX - 4, AY + AH / 2], right: [AX + AW + 4, AY + AH / 2] }[view.boardSide];
+    h += `<text x="${pos[0]}" y="${pos[1]}" font-size="12" font-weight="600" letter-spacing="2.2" text-anchor="middle" fill="${pal.ink2}">FRONT</text>`;
   }
 
   // furniture
@@ -2260,8 +2321,10 @@ function buildPlanSVG(cls, room, opts) {
     const g = Core.itemGeom(it, room.scale);
     const c = T({ x: g.table.x + g.table.w / 2, y: g.table.y + g.table.h / 2 });
     return { it, g, c };
-  }).sort((a, b) => (Math.round(a.c.y / 20) - Math.round(b.c.y / 20)) || (a.c.x - b.c.x));
-  if (cls.perspective === 'teacher') tables.reverse(); // numbering starts at the front row
+  });
+  const frontDist = new Map();
+  for (const st of seats) frontDist.set(st.itemId, Math.min(frontDist.get(st.itemId) ?? Infinity, st.dist));
+  tables.sort((a, b) => (Math.round(frontDist.get(a.it.id) * 2) - Math.round(frontDist.get(b.it.id) * 2)) || (a.c.x - b.c.x)); // numbered from the front row
   const colourOf = new Map();
   tables.forEach((t, i) => {
     const col = pal.tables[i % pal.tables.length];
@@ -2277,65 +2340,109 @@ function buildPlanSVG(cls, room, opts) {
     }
   });
 
-  // name pills: sized from real distances (px per metre), then spread along each table edge so
-  // narrow 0.6 m seats still get readable labels, using up to half the aisle on either side
+  // ---- name labels ----
+  // Each label sits just outside its table edge. Labels along a horizontal edge spread out to
+  // use up to half the aisle beside the table; labels on a vertical edge stack and grow outwards
+  // into half the free space. Sizes come from real distances so nothing overlaps.
   const pxPerM = s / (room.scale || .5);
-  const ph = clamp(pxPerM * .37, 22, 34);
-  const base = clamp(ph * .46, 10, 15);
-  const P = seats.map(st => ({ st, p: T(st) }));
+  const ph = clamp(pxPerM * .42, 26, 38);
+  const base = clamp(ph * .5, 12.5, 17);
   const maxW = Math.min(pxPerM * 1.7, 190);
-  const rows = [];
-  for (const o of P) {
-    let r = rows.find(q => q.item === o.st.itemId && Math.abs(q.y - o.p.y) < 2);
-    if (!r) rows.push(r = { item: o.st.itemId, y: o.p.y, m: [] });
-    r.m.push(o);
+  const pageRect = g => { const a = T({ x: g.x, y: g.y }), b = T({ x: g.x + g.w, y: g.y + g.h }); return { x0: Math.min(a.x, b.x), x1: Math.max(a.x, b.x), y0: Math.min(a.y, b.y), y1: Math.max(a.y, b.y) }; };
+  const rects = new Map();
+  for (const it of visible) if (!Core.isWall(it)) rects.set(it.id, pageRect(Core.itemGeom(it, room.scale).table));
+  const roomBox = { x0: ox, x1: ox + (maxx - minx) * s, y0: oy, y1: oy + (maxy - miny) * s };
+  // free space beyond an edge: the full distance to the wall, or half the distance to other furniture
+  function freeBeyond(id, dir, edge, lo, hi) {
+    let free = { U: edge - roomBox.y0, D: roomBox.y1 - edge, L: edge - roomBox.x0, R: roomBox.x1 - edge }[dir];
+    for (const [oid, r] of rects) {
+      if (oid === id) continue;
+      const vertical = dir === 'U' || dir === 'D';
+      if (vertical ? (r.x1 <= lo || r.x0 >= hi) : (r.y1 <= lo || r.y0 >= hi)) continue;
+      const d = { U: edge - r.y1, D: r.y0 - edge, L: edge - r.x1, R: r.x0 - edge }[dir];
+      if (d > -1) free = Math.min(free, Math.max(0, d) / 2);
+    }
+    return free;
   }
-  for (const r of rows) {
-    r.m.sort((a, b) => a.p.x - b.p.x);
-    const minX = r.m[0].p.x, maxX = r.m[r.m.length - 1].p.x, n = r.m.length;
+  const P = seats.map(st => {
+    const p = T(st), r = rects.get(st.itemId);
+    const cxr = (r.x0 + r.x1) / 2, cyr = (r.y0 + r.y1) / 2;
+    const ddx = Math.abs(p.x - cxr) - (r.x1 - r.x0) / 2, ddy = Math.abs(p.y - cyr) - (r.y1 - r.y0) / 2;
+    const dir = ddx > ddy ? (p.x > cxr ? 'R' : 'L') : (p.y > cyr ? 'D' : 'U');
+    return { st, p, r, dir };
+  });
+  const groups = new Map();
+  for (const o of P) { const k = o.st.itemId + o.dir; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
+  for (const m of groups.values()) {
+    const horiz = m[0].dir === 'U' || m[0].dir === 'D';
+    const along = o => horiz ? o.p.x : o.p.y, across = o => horiz ? o.p.y : o.p.x;
+    m.sort((a, b) => along(a) - along(b));
+    const n = m.length, lo = along(m[0]), hi = along(m[n - 1]);
+    // room along the edge: up to half the gap to the nearest seat of other furniture in the same band
+    const band = horiz ? ph * 1.05 : maxW;
     let nbL = -Infinity, nbR = Infinity;
     for (const o of P) {
-      if (o.st.itemId === r.item || Math.abs(o.p.y - r.y) >= ph * 1.05) continue;
-      if (o.p.x <= minX) nbL = Math.max(nbL, o.p.x); else if (o.p.x >= maxX) nbR = Math.min(nbR, o.p.x);
+      if (o.st.itemId === m[0].st.itemId || Math.abs(across(o) - across(m[0])) >= band) continue;
+      if (along(o) <= lo) nbL = Math.max(nbL, along(o)); else if (along(o) >= hi) nbR = Math.min(nbR, along(o));
     }
-    const cap = n > 1 ? pxPerM * .6 : maxW / 2;
-    const ext = Math.max(0, Math.min(cap, (minX - nbL) / 2 - 2, (nbR - maxX) / 2 - 2));
-    const left = minX - ext, slot = (maxX - minX + 2 * ext) / n;
-    r.m.forEach((o, k) => {
-      o.cx = n > 1 ? left + (k + .5) * slot : o.p.x;
-      o.w = n > 1 ? slot - 4 : 2 * ext;
+    const cap = horiz ? (n > 1 ? pxPerM * .9 : maxW / 2) : (n > 1 ? pxPerM * .3 : ph / 2 + 2);
+    const ext = Math.max(0, Math.min(cap, (lo - nbL) / 2 - 2, (nbR - hi) / 2 - 2));
+    const slot = n > 1 ? (hi - lo + 2 * ext) / n : 2 * ext;
+    m.forEach((o, k) => {
+      const c = n > 1 ? lo - ext + (k + .5) * slot : along(o);
+      const r = o.r, dir = o.dir;
+      if (horiz) {
+        o.w = clamp(Math.min(slot - 4, maxW), 44, maxW);
+        const edge = dir === 'U' ? r.y0 : r.y1;
+        const free = freeBeyond(o.st.itemId, dir, edge, c - o.w / 2, c + o.w / 2);
+        o.h = clamp(Math.min(ph, free - 3), 18, ph);
+        o.maxH = Math.max(o.h, Math.min(free - 3, ph * 1.6));
+        o.cx = c; o.edge = edge;
+      } else {
+        o.h = clamp(Math.min(ph, slot - 3), 18, ph);
+        o.maxH = o.h;
+        const edge = dir === 'L' ? r.x0 : r.x1;
+        const free = freeBeyond(o.st.itemId, dir, edge, c - o.h / 2, c + o.h / 2);
+        o.w = clamp(free - 4, 34, maxW);
+        o.cx = edge + (dir === 'L' ? -1 : 1) * (2 + o.w / 2);
+        o.cy = c;
+      }
     });
   }
   const tray = [];
-  for (const { st, p, cx, w: w0 } of P) {
-    let w = Math.min(w0, maxW);
-    const own = tables.find(t => t.it.id === st.itemId);
-    if (own && Math.abs(own.c.y - p.y) < ph / 2 + 12) w = Math.min(w, 2 * (Math.abs(own.c.x - cx) - 16));
-    w = clamp(w, 36, maxW);
+  for (const o of P) {
+    const { st, p, w } = o;
     const col = colourOf.get(st.itemId) || pal.tables[0];
     const sid = assign[st.key];
     const stu = sid && stById.get(sid);
-    const x = cx - w / 2;
     if (st.unavailable) {
-      tray.push(`<g><rect x="${f1(cx - 14)}" y="${f1(p.y - 10)}" width="28" height="20" rx="10" fill="#F1F0EC" stroke="#CFCBC2" stroke-dasharray="3 3"/><text x="${f1(cx)}" y="${f1(p.y + 4)}" font-size="11" text-anchor="middle" fill="#A9A49A">×</text></g>`);
+      if (!priv) continue; // unavailable seats are an editing aid only
+      tray.push(`<g><circle cx="${f1(p.x)}" cy="${f1(p.y)}" r="8" fill="#F1F0EC" stroke="#CFCBC2" stroke-dasharray="3 2"/><text x="${f1(p.x)}" y="${f1(p.y + 3.8)}" font-size="10" text-anchor="middle" fill="#A9A49A">×</text></g>`);
       continue;
     }
     if (!stu) {
-      tray.push(`<g data-seat="${st.key}"><rect x="${f1(x)}" y="${f1(p.y - ph / 2)}" width="${f1(w)}" height="${f1(ph)}" rx="${f1(ph / 2)}" fill="#fff" fill-opacity=".55" stroke="${shade(col, -22, 5)}" stroke-width="1.3" stroke-dasharray="4 4"/></g>`);
+      // empty seat: a faint chair on paper; a dashed drop target while editing
+      if (!opts.interactive) { tray.push(`<circle cx="${f1(p.x)}" cy="${f1(p.y)}" r="5" fill="none" stroke="${shade(col, -18, 5)}" stroke-opacity=".55" stroke-width="1.2"/>`); continue; }
+      const hh = o.h, cy = o.cy ?? (o.dir === 'U' ? o.edge - 2 - hh / 2 : o.edge + 2 + hh / 2);
+      tray.push(`<g data-seat="${st.key}"><rect x="${f1(o.cx - w / 2)}" y="${f1(cy - hh / 2)}" width="${f1(w)}" height="${f1(hh)}" rx="${f1(hh / 2)}" fill="#fff" fill-opacity=".55" stroke="${shade(col, -22, 5)}" stroke-width="1.2" stroke-dasharray="4 4"/></g>`);
       continue;
     }
-    const fit = fitName(displayName(cls, stu), w - 11, base);
+    const fsMax = Math.min(base, (o.h - 7) / 1.1);
+    const maxLines = Math.max(1, Math.min(3, Math.floor((o.maxH - 7) / (fsMax * .8 * 1.12))));
+    const fit = fitName(displayName(cls, stu), w - 10, fsMax, false, maxLines);
     const lh = fit.fs * 1.12;
-    const hh = Math.max(ph, fit.lines.length * lh + 9);
+    const hh = clamp(fit.lines.length * lh + 8, o.h, o.maxH);
+    const cy = o.cy ?? (o.dir === 'U' ? o.edge - 2 - hh / 2 : o.edge + 2 + hh / 2);
+    const x = o.cx - w / 2, cx = o.cx;
     const isSel = opts.interactive && ui.selStudent === stu.id;
     const bad = priv && violSeats.has(st.key);
     const stroke = isSel ? pal.accent : bad ? '#D1495B' : shade(col, -22, 8);
     let g = `<g data-seat="${st.key}" data-student="${stu.id}">`;
-    g += `<rect x="${f1(x)}" y="${f1(p.y - hh / 2)}" width="${f1(w)}" height="${f1(hh)}" rx="${f1(Math.min(hh, ph) / 2)}" fill="#fff" stroke="${stroke}" stroke-width="${isSel || bad ? 2.6 : 1.5}" filter="url(#${F}shs)"/>`;
-    const y0 = p.y - (fit.lines.length - 1) * lh / 2 + fit.fs * .35;
+    g += `<rect x="${f1(x)}" y="${f1(cy - hh / 2)}" width="${f1(w)}" height="${f1(hh)}" rx="${f1(Math.min(hh, ph) / 2)}" fill="#fff" stroke="${stroke}" stroke-width="${isSel || bad ? 2.6 : 1.5}" filter="url(#${F}shs)"/>`;
+    const y0 = cy - (fit.lines.length - 1) * lh / 2 + fit.fs * .35;
     fit.lines.forEach((ln, i) => { g += `<text x="${f1(cx)}" y="${f1(y0 + i * lh)}" font-size="${f1(fit.fs)}" font-weight="500" text-anchor="middle" fill="${pal.ink}">${esc(ln)}</text>`; });
     if (priv) {
-      const top = p.y - hh / 2;
+      const top = cy - hh / 2;
       if (stu.front) g += `<circle cx="${f1(x + 5)}" cy="${f1(top + 3)}" r="7.5" fill="#F6C343" stroke="#fff" stroke-width="1.5"/><path d="${starPath(x + 5, top + 3, 4.6)}" fill="#fff"/>`;
       if (stu.lock && stu.lock === st.key) g += `<circle cx="${f1(x + w - 5)}" cy="${f1(top + 3)}" r="7.5" fill="${pal.accent}" stroke="#fff" stroke-width="1.5"/>${lockGlyph(x + w - 5, top + 3)}`;
       if (bad) g += `<circle cx="${f1(x + w - (stu.lock === st.key ? 21 : 5))}" cy="${f1(top + 3)}" r="7.5" fill="#D1495B" stroke="#fff" stroke-width="1.5"/><text x="${f1(x + w - (stu.lock === st.key ? 21 : 5))}" y="${f1(top + 6.6)}" font-size="10" font-weight="700" text-anchor="middle" fill="#fff">!</text>`;
@@ -2348,13 +2455,14 @@ function buildPlanSVG(cls, room, opts) {
   // footer
   const nSeated = Object.keys(assign).length;
   const nAvail = seats.filter(x => !x.unavailable).length;
-  h += `<text x="56" y="${PAGE_H - 22}" font-size="11.5" fill="${pal.ink2}">${cls.perspective === 'teacher' ? "Teacher's view · board at the bottom" : "Student's view · board at the top"}</text>`;
+  const foot = `${cls.perspective === 'teacher' ? "Teacher's view" : "Student's view"} · board at the ${view.boardSide}`;
+  h += `<text x="56" y="${PAGE_H - 22}" font-size="11.5" fill="${pal.ink2}">${foot}</text>`;
   if (priv) {
-    const lx = 300;
+    const lx = 56 + measure(foot, 400, 11.5) + 40;
     h += `<g transform="translate(${lx} ${PAGE_H - 26})"><circle cx="0" cy="0" r="6.5" fill="#F6C343"/><path d="${starPath(0, 0, 4)}" fill="#fff"/><text x="11" y="4" font-size="11" fill="${pal.ink2}">Front priority</text>
       <circle cx="108" cy="0" r="6.5" fill="${pal.accent}"/>${lockGlyph(108, 0)}<text x="119" y="4" font-size="11" fill="${pal.ink2}">Locked seat</text>
       <circle cx="210" cy="0" r="6.5" fill="#D1495B"/><text x="210" y="3.6" font-size="9" font-weight="700" text-anchor="middle" fill="#fff">!</text><text x="221" y="4" font-size="11" fill="${pal.ink2}">Breaks a rule</text>
-      <text x="312" y="4" font-size="11" fill="${pal.ink2}" font-style="italic">Private markers: hidden on print if you choose</text></g>`;
+      <text x="312" y="4" font-size="11" fill="${pal.ink2}" font-style="italic">Editing markers: never printed</text></g>`;
   }
   h += `<text x="${PAGE_W - 56}" y="${PAGE_H - 22}" font-size="11.5" text-anchor="end" fill="${pal.ink2}">${cls.students.length} students · ${nSeated} seated · ${nAvail} seats</text>`;
   return h + '</svg>';
@@ -2444,10 +2552,10 @@ function bindPlan() {
   $('#genBtn').addEventListener('click', () => generate(false));
   $('#shuffleBtn').addEventListener('click', () => generate(true));
   $('#clearPlanBtn').addEventListener('click', () => mutate(() => { activeClass().plan = { assign: {} }; ui.result = null; }));
-  $('#perspSeg').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b) mutate(() => { activeClass().perspective = b.dataset.p; }); });
+  $('#perspSeg').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b) mutate(() => { const c = activeClass(); c.perspective = b.dataset.p; c.planRot = 0; }); });
+  $('#rotL').addEventListener('click', () => mutate(() => { const c = activeClass(); c.planRot = ((c.planRot || 0) + 3) % 4; }));
+  $('#rotR').addEventListener('click', () => mutate(() => { const c = activeClass(); c.planRot = ((c.planRot || 0) + 1) % 4; }));
   $('#showPrivate').addEventListener('change', e => { ui.showPrivate = e.target.checked; saveUI(); renderPlanTab(); });
-  $('#hidePrivate').addEventListener('change', e => mutate(() => { activeClass().hidePrivate = e.target.checked; }));
-  $('#fillSelect').addEventListener('change', e => mutate(() => { activeClass().fill = e.target.value; }));
   $('#nameFormat').addEventListener('change', e => mutate(() => { activeClass().nameFormat = e.target.value; }));
   $('#paletteSwatches').addEventListener('click', e => { const b = e.target.closest('[data-pal]'); if (b) mutate(() => { activeClass().palette = b.dataset.pal; }); });
   const hdr = (sel, fn) => $(sel).addEventListener('change', e => mutate(() => fn(activeClass(), e.target.value.trim())));
@@ -2477,7 +2585,7 @@ function exportSvgString(fontCss) {
   const cls = activeClass();
   const room = classRoom(cls);
   const viol = Core.checkPlan({ seats: Core.roomSeats(room), assignment: cls.plan.assign, rules: cls.rules, mode: cls.adjacency });
-  return buildPlanSVG(cls, room, { priv: !cls.hidePrivate, interactive: false, viol, fontCss });
+  return buildPlanSVG(cls, room, { priv: false, interactive: false, viol, fontCss });
 }
 function fileBase() { return (activeClass().name || 'seating-plan').replace(/[^\w-]+/g, '_') + '_seating_plan'; }
 function doPrint() {
@@ -2587,7 +2695,7 @@ async function dataMenu() {
     ],
   });
   if (v === 'export') {
-    const blob = new Blob([JSON.stringify({ app: 'seating-planner', version: 2, exportedAt: new Date().toISOString(), rooms: data.rooms, classes: data.classes }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'seating-planner', version: 3, exportedAt: new Date().toISOString(), rooms: data.rooms, classes: data.classes }, null, 2)], { type: 'application/json' });
     download(blob, `seating-planner-backup-${new Date().toISOString().slice(0, 10)}.json`);
   }
   if (v === 'import') $('#importFile').click();
@@ -2674,6 +2782,12 @@ function init() {
       const fresh = Sample.rooms().map(normRoom);
       data.rooms = data.rooms.map(r => (r.sample && fresh.find(f => f.id === r.id)) || r);
       data.version = 2;
+      save();
+    }
+    if (data.version < 3) {
+      // v3: plans default to "First L." labels, which print far more legibly
+      for (const c of data.classes) c.nameFormat = 'initial';
+      data.version = 3;
       save();
     }
   } else {
