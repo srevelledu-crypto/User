@@ -29,8 +29,9 @@ browser.
   you can pick a different one, and the class colour, under **Students → Colour & icon** or the card's ⋮ menu.
 - **Getting started**: the Classes page shows a three-step guide (create a
   class, add students, choose a room). Each step points at the control to use
-  and ticks itself off; hide it with **Hide** and bring it back from the link
-  under the class cards.
+  and ticks itself off. Once all three are done, or if you press **Hide**, it
+  moves out of the way to **Getting started** at the bottom of the side menu,
+  which brings it back.
 - **Students & rules**: the class list, front-priority students and the
   **keep apart** / **keep together** rules. Seating plans and groups both use
   these rules. **Import CSV…** reads a class list exported from a school system

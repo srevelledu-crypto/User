@@ -334,6 +334,8 @@ h3 { font-weight: 700; }
 .rail:not(.open) .lbl { display: none; }
 .rail-sep { height: 1px; background: var(--line); margin: 8px 0; flex-shrink: 0; }
 .rail-head { padding: 8px 24px 4px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+#guideRail { margin-top: auto; }
+#guideRail:not([hidden]) + .privacy { margin-top: 4px; }
 .rail .privacy { display: block; margin: auto 16px 8px; border-radius: 12px; white-space: normal; padding: 8px 12px; }
 .mini-ico { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #fff; flex-shrink: 0; }
 .mini-ico .ico { width: 18px; height: 18px; stroke-width: 2; color: inherit; }

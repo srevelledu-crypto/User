@@ -80,6 +80,7 @@ function renderCrumb() {
 }
 const isNarrow = () => matchMedia('(max-width: 900px)').matches;
 function renderRail() {
+  $('#guideRail').hidden = !ui.guide.hidden;
   const inClass = CLASS_TABS.includes(ui.tab);
   $('#rail').classList.toggle('open', !!ui.railOpen);
   document.body.classList.toggle('rail-open', !!ui.railOpen);

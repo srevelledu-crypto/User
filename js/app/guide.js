@@ -3,9 +3,10 @@
    9. GETTING-STARTED GUIDE
    A three-step checklist on the Classes page: create a class, add students, choose a room. Each
    step's button takes you to the right place and points at what to use. Steps tick themselves off
-   as they're done; the guide can be hidden and shown again.
+   as they're done. Once all three are done (or the guide is hidden) it moves out of the way, to a
+   "Getting started" link at the bottom of the side menu, which brings it back.
 ================================================================= */
-ui.guide = Object.assign({ hidden: false, room: false }, ui.guide);
+ui.guide = Object.assign({ hidden: false, room: false, done: false }, ui.guide);
 
 function guideSteps() {
   const mine = data.classes.filter(c => !c.sample);
@@ -21,7 +22,7 @@ function guideSteps() {
 }
 function renderGuide() {
   const el = $('#guide');
-  $('#guideShow').hidden = !ui.guide.hidden;
+  $('#guideRail').hidden = !ui.guide.hidden;
   if (ui.guide.hidden) { el.innerHTML = ''; return; }
   const steps = guideSteps(), done = steps.filter(s => s.done).length, next = steps.findIndex(s => !s.done);
   el.innerHTML = `<section class="guide-card" aria-label="Getting started">
@@ -68,15 +69,28 @@ function spotlight(sel, text) {
   }, 80);
 }
 
+/* Called on every render: the first time all three steps are done, tuck the guide away. */
+let guideChecked = false;
+function checkGuide() {
+  const first = !guideChecked; guideChecked = true;
+  if (ui.guide.done || !guideSteps().every(s => s.done)) return;
+  ui.guide.done = true; ui.guide.hidden = true; saveUI(); clearSpot();
+  $('#guideRail').hidden = false;
+  if (!first) toast('✓ You’re all set up. The guide is now under Getting started in the side menu.');
+}
+
 function bindGuide() {
   $('#guide').addEventListener('click', e => {
     if (e.target.closest('[data-guide-hide]')) { ui.guide.hidden = true; saveUI(); renderGuide(); return; }
     const b = e.target.closest('[data-guide-step]');
     if (b) guideSteps()[+b.dataset.guideStep].go();
   });
-  $('#guideShow').addEventListener('click', () => { ui.guide.hidden = false; saveUI(); renderGuide(); });
+  $('#guideRail').addEventListener('click', () => {
+    ui.guide.hidden = false; saveUI(); setTab('classes');
+    $('#guide').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  });
   // choosing a room for a class (or opening Rooms once you have a class) completes step 3
-  const roomDone = () => { if (!ui.guide.room && data.classes.some(c => !c.sample)) { ui.guide.room = true; saveUI(); clearSpot(); } };
+  const roomDone = () => { if (!ui.guide.room && data.classes.some(c => !c.sample)) { ui.guide.room = true; saveUI(); clearSpot(); checkGuide(); } };
   $('#classRoom').addEventListener('change', roomDone);
   $('#rail').addEventListener('click', e => { if (e.target.closest('[data-nav="room"]')) roomDone(); });
   document.addEventListener('pointerdown', e => { if (spotEl && !spotTip.contains(e.target) && !spotEl.contains(e.target)) clearSpot(); });

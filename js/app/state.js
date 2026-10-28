@@ -198,6 +198,7 @@ function render() {
   $('#presentBtn').hidden = !CLASS_TABS.includes(ui.tab);
   if (ui.present && !CLASS_TABS.includes(ui.tab)) setPresent(false);
   if (ui.tab !== 'noise' && pit.on) stopNoise(); // the microphone is only ever on while the noise meter is showing
+  checkGuide();
   renderCrumb();
   renderRail();
   syncUndoButtons();
