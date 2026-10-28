@@ -3,29 +3,39 @@
 # ClassPost
 
 Classroom tools for teachers, organised by class: pick a class, then use its
-**seating plan**, **groups** or **random picker**. Everything runs in the
-browser from a single `index.html`, with no build step and no server. Serve it
-from any static host, or open the file straight from disk.
+**seating plan**, **groups**, **random picker and timer** or **home learning**
+tracker. Everything runs in the browser with no build step and no server.
+Serve the `classpost/` folder from any static host, or open `index.html`
+straight from disk.
 
 **Privacy:** class lists, rules, plans and groups are stored only in this
-browser's `localStorage`. The only network requests are to Google Fonts (Inter
+browser's `localStorage`. The only network requests are to Google Fonts (Figtree
 and Poppins), which carry no student data. Use **☰ Data → Export backup** to
 save a JSON file and **Import…** to load it on another computer. Import can
-merge with what's already there or replace it.
+merge with what's already there or replace it. The noise meter listens to the
+microphone only while it's switched on, and the sound never leaves the
+browser.
 
 ## How it's organised
 
 - **Your classes** (home): one card per class; click a card to open it, or
   use its **⋮** menu to rename, change the icon, duplicate or delete it. The
-  **＋** button (top right) creates a class (name and colour, with a preview of
-  its automatic icon) or imports a backup. The left rail
+  **＋** button (top right) creates a class: name, colour, room, and
+  optionally the students and rules copied from another class. It can also
+  import a backup. The left rail
   lists every class and collapses to icons with the **☰** button.
 - **Class icons**: 50 subject icons. Each class gets one automatically from
   its name ("12CHEM", "Year 9 Maths", "Physical Education", "Japanese"…), and
   you can pick a different one, and the class colour, under **Students → Colour & icon** or the card's ⋮ menu.
+- **Getting started**: the Classes page shows a three-step guide (create a
+  class, add students, choose a room). Each step points at the control to use
+  and ticks itself off; hide it with **Hide** and bring it back from the link
+  under the class cards.
 - **Students & rules**: the class list, front-priority students and the
   **keep apart** / **keep together** rules. Seating plans and groups both use
-  these rules.
+  these rules. **Import CSV…** reads a class list exported from a school system
+  (it finds the preferred/first name, surname or full-name columns, and can
+  swap "Surname, First"); you can add the names or replace the class.
 - **Seating plan**: **Generate** or **Shuffle**. Drag names to swap seats or
   to unseat someone. Tap a name to lock it to its seat. Then **Print A4**,
   **PNG** or **PDF**. **Edit room** opens the class's room layout.
@@ -33,14 +43,31 @@ merge with what's already there or replace it.
   **Make groups**. Groups come out as even as possible and follow the
   keep-apart/together rules (you can switch this off). Tap a name, then
   another name to swap them, or tap a group to move them there. **Copy** puts
-  the groups on the clipboard as text.
+  the groups on the clipboard as text. **Mix up partners** steers new groups
+  away from pairs who worked together recently. Each new set goes into
+  **Recent groupings** (last 12), and **Save** keeps a set under a name such as
+  "Prac groups" to bring back later.
 - **Random picker** (cold calling): **Pick someone** or press `Space`; a reel
   of names spins and lands on someone. By
   default nobody is picked twice until everyone has had a turn, and the same
   person is never picked twice in a row.
+- **Lesson timer** (next to the picker): presets from 1 to 15 minutes, ± a
+  minute, and an optional chime. While it runs, a chip in the top bar shows
+  the time left on every tab.
+- **Noise meter**: a ball pit that bounces with the room's noise level. Set the
+  limit and the sensitivity; if it stays over the limit for a second the card
+  turns red and says so. It shows how long the room has been calm.
+- **Home learning**: add a task with a due date, then tap each student's cell
+  to cycle *handed in → late → excused → not in*. After the due date, anyone
+  not in shows as missing. Each student's hand-in rate is shown, and a task's
+  ⋮ menu copies who hasn't handed it in, or marks everyone else as in.
+- **Display mode** (screen icon, top right, inside a class): for the
+  projector. It hides the menus and editing controls, makes names, the picker,
+  timer and groups much larger, and goes full screen. `Esc` or **Exit display
+  mode** leaves it.
 - **Here today**: on Groups and Random picker, tap a name to mark them absent.
   Absent students are left out of new groups and never picked.
-- **Rooms** (top bar): room layouts are shared by all classes. Draw the walls
+- **Rooms** (side menu): room layouts are shared by all classes. Draw the walls
   (rectangle, L-shape or your own polygon), then drag furniture on from the
   palette. Tap a seat to mark it unavailable. Each seat shows its distance
   from the board.
@@ -52,6 +79,38 @@ redo (`Ctrl/⌘+Z`, `Ctrl/⌘+Shift+Z`) work everywhere.
 Data saved by the earlier Seating Planner, Class Toolkit or Classbeat (same browser, same
 site) loads as-is, so existing classes, rooms and plans carry over. Backups
 made by either load with **Import…**.
+
+## Files
+
+```
+classpost/
+  index.html          markup only; loads the CSS and scripts below in order
+  css/app.css         all styles
+  js/core.js          seating solver and room geometry (no DOM)
+  js/tools.js         group maker, picker and CSV parsing (no DOM)
+  js/sample.js        the sample class and rooms
+  js/icons.js         the 50 subject icons
+  js/app/state.js     data, saving, undo/redo, dialogs, top-level render
+  js/app/home.js      Classes page, side menu, new-class dialog, menus
+  js/app/rooms.js     room editor
+  js/app/students.js  students, rules, CSV import
+  js/app/plan.js      seating plan, printing, PNG/PDF
+  js/app/groups.js    groups, history, saved sets
+  js/app/picker.js    random picker
+  js/app/classtools.js  lesson timer and noise meter
+  js/app/homelearning.js  home learning tracker
+  js/app/present.js   display mode
+  js/app/guide.js     getting-started guide
+  js/app/data.js      backup export/import
+  js/app/main.js      keyboard shortcuts and start-up
+  tests/              Node tests for core.js and tools.js
+  brand/              logo, favicon, home-screen icon
+```
+
+The scripts are plain `<script>` files (no modules) so the page also works when
+opened from disk; they share one global scope and must load in the order in
+`index.html`. `core.js` and `tools.js` have no DOM code and also export
+themselves for Node, which is what the tests use.
 
 ## How the seating solver works
 
@@ -76,9 +135,10 @@ made by either load with **Import…**.
 
 ```
 node classpost/tests/solver.test.mjs
+node classpost/tests/tools.test.mjs
 ```
 
-The tests load the solver code embedded in `index.html` and check:
+`solver.test.mjs` checks the seating solver in `js/core.js`:
 
 - a 28-student class with 6 keep-apart rules and 4 front-priority students
   (300 random seeds in each adjacency mode);
@@ -87,6 +147,21 @@ The tests load the solver code embedded in `index.html` and check:
 - several impossible rule sets;
 - more students than seats;
 - furniture placement inside L-shaped and lab rooms.
+
+`tools.test.mjs` checks the group maker, picker and CSV import in
+`js/tools.js` (using a seeded random number generator so failures repeat):
+
+- groups always use every student exactly once with sizes at most one apart,
+  for every class size 1–40 and group count up to 12;
+- the sample class follows every rule over 200 seeds, and 300 random rule sets
+  are followed whenever an exhaustive search shows that's possible; impossible
+  and contradictory rules are reported, not hidden;
+- **Mix up partners** cuts repeat pairings to under a quarter;
+- the picker never repeats within a round, never picks the same person twice
+  in a row (20,000 picks), never picks an absent student, and picks everyone
+  equally often;
+- CSV files with commas, tabs or semicolons, quoted fields, header rows, a
+  byte-order mark, and blank preferred names.
 
 ## Branding
 
