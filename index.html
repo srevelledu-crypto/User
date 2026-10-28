@@ -22,7 +22,8 @@
       <button class="tab" data-tab="students">Students</button>
       <button class="tab" data-tab="plan">Seating plan</button>
       <button class="tab" data-tab="groups">Groups</button>
-      <button class="tab" data-tab="picker">Random picker</button>
+      <button class="tab" data-tab="picker">Picker &amp; timer</button>
+      <button class="tab" data-tab="homework">Home learning</button>
     </nav>
     <div class="top-actions">
       <button class="icon-btn" id="undoBtn" title="Undo (Ctrl/Cmd+Z)" aria-label="Undo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
@@ -296,6 +297,26 @@
       </div>
     </div>
   </section>
+
+  <!-- ================= HOME LEARNING ================= -->
+  <section class="view" id="view-homework">
+    <aside class="sidebar">
+      <form class="section" id="hlAdd">
+        <h2>Add a task</h2>
+        <label class="field"><span>Task</span><input class="input" id="hlTitle" placeholder="e.g. Forces worksheet" autocomplete="off"></label>
+        <label class="field"><span>Due</span><input class="input" id="hlDue" type="date"></label>
+        <button class="btn primary" type="submit">Add task</button>
+      </form>
+      <div class="section">
+        <h2>Tasks</h2>
+        <div class="saved-list" id="hlTaskList"></div>
+      </div>
+      <div class="section">
+        <div class="hint">Tap a student’s box to step through: submitted ✓, late L, excused –, then back to not in yet. Once a task is past its due date, anything not handed in shows as missing (!).</div>
+      </div>
+    </aside>
+    <div class="content" id="hlGrid"></div>
+  </section>
   </main>
   </div>
 </div>
@@ -312,6 +333,7 @@
 <script src="js/app/home.js"></script>
 <script src="js/app/groups.js"></script>
 <script src="js/app/picker.js"></script>
+<script src="js/app/homelearning.js"></script>
 <script src="js/app/data.js"></script>
 <script src="js/app/main.js"></script>
 </body>

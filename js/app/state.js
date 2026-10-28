@@ -59,6 +59,7 @@ function normClass(c) {
   out.icon = out.icon || 'auto';
   out.color = out.color || null;
   out.absent = Array.isArray(out.absent) ? out.absent : [];
+  out.homework = (Array.isArray(out.homework) ? out.homework : []).map(t => Object.assign({ id: uid('hw'), title: 'Task', set: '', due: '', created: 0, subs: {} }, t));
   out.groups = Object.assign({ mode: 'size', size: 4, count: 6, rules: true, avoidRepeats: true, list: [], at: null, history: [], saved: [] }, out.groups);
   out.groups.history = (out.groups.history || []).filter(h => h && Array.isArray(h.list));
   out.groups.saved = (out.groups.saved || []).filter(h => h && Array.isArray(h.list));
@@ -200,5 +201,6 @@ function render() {
   else if (ui.tab === 'students') renderStudentsTab();
   else if (ui.tab === 'groups') renderGroupsTab();
   else if (ui.tab === 'picker') renderPickerTab();
+  else if (ui.tab === 'homework') renderHomeLearningTab();
   else renderPlanTab();
 }

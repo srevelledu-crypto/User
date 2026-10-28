@@ -2,8 +2,8 @@
 /* =================================================================
    0. CLASSES HOME + class switcher
 ================================================================= */
-const CLASS_TABS = ['students', 'plan', 'groups', 'picker'];
-const TAB_LABEL = { students: 'Students', plan: 'Seating plan', groups: 'Groups', picker: 'Random picker' };
+const CLASS_TABS = ['students', 'plan', 'groups', 'picker', 'homework'];
+const TAB_LABEL = { students: 'Students', plan: 'Seating plan', groups: 'Groups', picker: 'Picker & timer', homework: 'Home learning' };
 function openClass(id, tab) {
   data.activeClassId = id; ui.ruleSel.clear(); ui.selStudent = null; ui.grpSel = null;
   save(); setTab(tab || 'students');
