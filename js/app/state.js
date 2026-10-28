@@ -193,6 +193,8 @@ function render() {
   $$('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === ui.tab));
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + ui.tab));
   $('#classTabs').hidden = !CLASS_TABS.includes(ui.tab);
+  const activeTab = $('#classTabs .tab.active');
+  if (activeTab && !$('#classTabs').hidden) { const r = activeTab.getBoundingClientRect(), box = $('#classTabs').getBoundingClientRect(); if (r.left < box.left || r.right > box.right) $('#classTabs').scrollLeft += r.left - box.left - 16; }
   $('#presentBtn').hidden = !CLASS_TABS.includes(ui.tab);
   if (ui.present && !CLASS_TABS.includes(ui.tab)) setPresent(false);
   renderCrumb();
@@ -203,6 +205,8 @@ function render() {
   else if (ui.tab === 'students') renderStudentsTab();
   else if (ui.tab === 'groups') renderGroupsTab();
   else if (ui.tab === 'picker') renderPickerTab();
+  else if (ui.tab === 'timer') renderTimerTab();
+  else if (ui.tab === 'noise') renderNoiseTab();
   else if (ui.tab === 'homework') renderHomeLearningTab();
   else renderPlanTab();
 }

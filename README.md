@@ -3,8 +3,8 @@
 # ClassPost
 
 Classroom tools for teachers, organised by class: pick a class, then use its
-**seating plan**, **groups**, **random picker and timer** or **home learning**
-tracker. Everything runs in the browser with no build step and no server.
+**seating plan**, **groups**, **random picker**, **lesson timer**, **noise
+meter** or **home learning** tracker. Everything runs in the browser with no build step and no server.
 Serve this repository from any static host (for example GitHub Pages), or
 open `index.html` straight from disk.
 
@@ -51,12 +51,15 @@ browser.
   of names spins and lands on someone. By
   default nobody is picked twice until everyone has had a turn, and the same
   person is never picked twice in a row.
-- **Lesson timer** (next to the picker): presets from 1 to 15 minutes, ± a
-  minute, and an optional chime. While it runs, a chip in the top bar shows
-  the time left on every tab.
-- **Noise meter**: a ball pit that bounces with the room's noise level. Set the
-  limit and the sensitivity; if it stays over the limit for a second the card
-  turns red and says so. It shows how long the room has been calm.
+- **Timer** (its own tab): a large lesson timer with presets from 1 to 15
+  minutes, ± a minute, and an optional chime. `Space` starts and pauses it.
+  It keeps running on other tabs, where a chip in the top bar shows the time
+  left; click the chip to go back to it.
+- **Noise meter** (its own tab): a large ball pit that bounces with the room's
+  noise level. Set the limit and the sensitivity; if it stays over the limit
+  for a second the page turns red and says so. It shows how long the room has
+  been calm. It keeps listening if you switch tabs, and pops up a "Too loud!"
+  message there.
 - **Home learning**: add a task with a due date, then tap each student's cell
   to cycle *handed in → late → excused → not in*. After the due date, anyone
   not in shows as missing. Each student's hand-in rate is shown, and a task's

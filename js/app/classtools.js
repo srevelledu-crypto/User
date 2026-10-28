@@ -1,6 +1,8 @@
 'use strict';
 /* =================================================================
-   7. CLASSROOM TOOLS beside the picker: lesson timer + ball-pit noise meter
+   7. CLASSROOM TOOLS: lesson timer and ball-pit noise meter, each on its own tab.
+   The timer keeps running on other tabs (a chip in the top bar shows the time left), and so does
+   the noise meter's listening, so its "too loud" warning still pops up as a toast.
 ================================================================= */
 
 /* ---------- shared sound (created on a click, so browsers allow it) ---------- */
@@ -68,7 +70,7 @@ function toggleTimer() {
 }
 
 /* ================= ball-pit noise meter ================= */
-const pit = { on: false, stream: null, analyser: null, buf: null, level: 0, loudFor: 0, quietSince: Date.now(), balls: [], raf: 0, last: 0, w: 0, h: 0 };
+const pit = { on: false, wasLoud: false, stream: null, analyser: null, buf: null, level: 0, loudFor: 0, quietSince: Date.now(), balls: [], raf: 0, last: 0, w: 0, h: 0 };
 const PIT_COLOURS = ['#016df8', '#04af4f', '#fa3e42', '#fa6002', '#fab001', '#01aab5'];
 function pitSize() {
   const cv = $('#ballPit'), dpr = window.devicePixelRatio || 1;
@@ -143,10 +145,12 @@ function drawPit(state) {
 function pitFrame(ts) {
   const dt = Math.min(0.05, (ts - (pit.last || ts)) / 1000 || 0.016);
   pit.last = ts;
-  const visible = ui.tab === 'picker' && pitSize();
+  const visible = ui.tab === 'noise' && pitSize();
   const state = visible || pit.on ? stepPit(dt) : null;
   if (visible && state) drawPit(state);
   if (state) {
+    if (state.tooLoud && !pit.wasLoud && ui.tab !== 'noise') toast('🔊 Too loud!');
+    pit.wasLoud = state.tooLoud;
     $('#nmBanner').hidden = !state.tooLoud;
     $('#noiseCard').classList.toggle('loud', state.tooLoud);
     if (pit.on) {
@@ -183,8 +187,8 @@ function stopNoise() {
   wakePit();
 }
 function noiseMessage(t) { $('#nmHint').textContent = t; }
-function renderClassTools() {
-  drawTimer();
+function renderTimerTab() { drawTimer(); }
+function renderNoiseTab() {
   $('#nmLimitText').textContent = `${$('#nmLimit').value}%`;
   requestAnimationFrame(() => { pitSize(); wakePit(); });
 }
@@ -195,9 +199,9 @@ function bindClassTools() {
   $('#tmReset').addEventListener('click', () => { const t = lessonTimer; clearInterval(t.tick); Object.assign(t, { endAt: null, tick: null, left: t.total, done: false }); drawTimer(); });
   $('#tmPlus').addEventListener('click', () => { const t = lessonTimer; if (t.endAt) t.endAt += 60000; else t.left = Math.min(99 * 60, t.left + 60); t.total = Math.max(t.total, Math.ceil(timerLeft())); t.done = false; drawTimer(); });
   $('#tmMinus').addEventListener('click', () => { const t = lessonTimer; if (t.endAt) t.endAt = Math.max(Date.now() + 1000, t.endAt - 60000); else { t.left = Math.max(10, t.left - 60); t.total = Math.max(t.left, t.total - 60); } drawTimer(); });
-  $('#timerChip').addEventListener('click', () => { if (CLASS_TABS.includes(ui.tab) || ui.tab === 'classes') setTab('picker'); });
+  $('#timerChip').addEventListener('click', () => { if (CLASS_TABS.includes(ui.tab) || ui.tab === 'classes') setTab('timer'); });
   $('#nmToggle').addEventListener('click', () => (pit.on ? stopNoise() : startNoise()));
   $('#nmLimit').addEventListener('input', () => { $('#nmLimitText').textContent = `${$('#nmLimit').value}%`; wakePit(); });
-  window.addEventListener('resize', () => { pit.balls = []; if (ui.tab === 'picker') wakePit(); });
+  window.addEventListener('resize', () => { pit.balls = []; if (ui.tab === 'noise') wakePit(); });
   drawTimer();
 }

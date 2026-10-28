@@ -22,7 +22,9 @@
       <button class="tab" data-tab="students">Students</button>
       <button class="tab" data-tab="plan">Seating plan</button>
       <button class="tab" data-tab="groups">Groups</button>
-      <button class="tab" data-tab="picker">Picker &amp; timer</button>
+      <button class="tab" data-tab="picker">Picker</button>
+      <button class="tab" data-tab="timer">Timer</button>
+      <button class="tab" data-tab="noise">Noise meter</button>
       <button class="tab" data-tab="homework">Home learning</button>
     </nav>
     <div class="top-actions">
@@ -300,34 +302,46 @@
         </div>
         <div class="hint">or press <kbd>Space</kbd></div>
       </div>
-      <div class="tools-col">
-        <section class="tool-card" id="timerCard" aria-label="Lesson timer">
-          <div class="tool-head"><h2>Lesson timer</h2><span class="tool-state" id="tmState"></span></div>
-          <div class="timer-face">
-            <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tm-track" cx="60" cy="60" r="52"/><circle class="tm-ring" id="tmRing" cx="60" cy="60" r="52"/></svg>
-            <div class="timer-digits" id="tmDigits" role="timer" aria-live="off">5:00</div>
-          </div>
-          <div class="timer-presets" id="tmPresets">
-            <button class="btn sm" data-min="1">1 min</button><button class="btn sm" data-min="2">2</button><button class="btn sm" data-min="3">3</button>
-            <button class="btn sm" data-min="5">5</button><button class="btn sm" data-min="10">10</button><button class="btn sm" data-min="15">15</button>
-          </div>
-          <div class="btn-row timer-controls">
-            <button class="btn icon" id="tmMinus" title="1 minute less" aria-label="1 minute less">−</button>
-            <button class="btn primary" id="tmStart" style="flex:1">Start</button>
-            <button class="btn icon" id="tmPlus" title="1 minute more" aria-label="1 minute more">＋</button>
-            <button class="btn" id="tmReset">Reset</button>
-          </div>
-          <label class="check small"><input type="checkbox" id="tmSound" checked> Chime when time's up</label>
-        </section>
-        <section class="tool-card" id="noiseCard" aria-label="Noise meter">
-          <div class="tool-head"><h2>Noise meter</h2><span class="tool-state" id="nmState">Off</span></div>
-          <div class="pit-wrap"><canvas id="ballPit" aria-label="Ball pit: the balls bounce higher the louder the room is"></canvas><div class="pit-banner" id="nmBanner" hidden>Too loud!</div></div>
+    </div>
+  </section>
+
+  <!-- ================= TIMER ================= -->
+  <section class="view solo" id="view-timer">
+    <div class="content tool-page">
+      <section class="tool-card timer-page" id="timerCard" aria-label="Lesson timer">
+        <div class="tool-head"><h1 class="tool-title">Lesson timer</h1><span class="tool-state" id="tmState"></span></div>
+        <div class="timer-face">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tm-track" cx="60" cy="60" r="52"/><circle class="tm-ring" id="tmRing" cx="60" cy="60" r="52"/></svg>
+          <div class="timer-digits" id="tmDigits" role="timer" aria-live="off">5:00</div>
+        </div>
+        <div class="timer-presets" id="tmPresets">
+          <button class="btn" data-min="1">1 min</button><button class="btn" data-min="2">2 min</button><button class="btn" data-min="3">3 min</button>
+          <button class="btn" data-min="5">5 min</button><button class="btn" data-min="10">10 min</button><button class="btn" data-min="15">15 min</button>
+        </div>
+        <div class="btn-row timer-controls">
+          <button class="btn icon" id="tmMinus" title="1 minute less" aria-label="1 minute less">−</button>
+          <button class="btn primary pill-xl" id="tmStart">Start</button>
+          <button class="btn icon" id="tmPlus" title="1 minute more" aria-label="1 minute more">＋</button>
+          <button class="btn outline-pill" id="tmReset">Reset</button>
+        </div>
+        <div class="tool-foot"><label class="check small"><input type="checkbox" id="tmSound" checked> Chime when time's up</label><span class="hint">Space starts and pauses. The time left shows at the top of every page.</span></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ================= NOISE METER ================= -->
+  <section class="view solo" id="view-noise">
+    <div class="content tool-page">
+      <section class="tool-card noise-page" id="noiseCard" aria-label="Noise meter">
+        <div class="tool-head"><h1 class="tool-title">Noise meter</h1><span class="tool-state" id="nmState">Off</span></div>
+        <div class="pit-wrap"><canvas id="ballPit" aria-label="Ball pit: the balls bounce higher the louder the room is"></canvas><div class="pit-banner" id="nmBanner" hidden>Too loud!</div></div>
+        <div class="noise-controls">
           <label class="field"><span>Too loud at <b id="nmLimitText"></b></span><input type="range" id="nmLimit" min="20" max="95" value="60"></label>
           <label class="field"><span>Microphone sensitivity</span><input type="range" id="nmSens" min="1" max="10" value="5"></label>
-          <div class="btn-row"><button class="btn primary" id="nmToggle" style="flex:1">Start listening</button></div>
-          <div class="hint" id="nmHint">Uses the microphone to measure how loud the room is. Nothing is recorded or sent anywhere.</div>
-        </section>
-      </div>
+          <button class="btn primary pill-xl" id="nmToggle">Start listening</button>
+        </div>
+        <div class="hint" id="nmHint">Uses the microphone to measure how loud the room is. Nothing is recorded or sent anywhere.</div>
+      </section>
     </div>
   </section>
 

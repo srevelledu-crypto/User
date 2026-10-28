@@ -8,6 +8,7 @@ document.addEventListener('keydown', e => {
   if (mod && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); redo(); return; }
   if (!typing && ui.tab === 'picker' && e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); pickOne(); return; }
+  if (!typing && ui.tab === 'timer' && e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); toggleTimer(); return; }
   if (typing || ui.tab !== 'room') return;
   if (ui.tool === 'draw') {
     if (e.key === 'Escape') { ui.drawPts = []; ui.drawHover = null; renderRoomSvg(); }
