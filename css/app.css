@@ -580,6 +580,9 @@ body.present .hl-table { font-size: 17px; }
 .guide-head { display: flex; align-items: center; gap: 12px; font-size: 17px; }
 .guide-bar { height: 6px; border-radius: 99px; background: #eceef2; overflow: hidden; }
 .guide-bar i { display: block; height: 100%; background: var(--brand-blue); border-radius: inherit; transition: width .3s ease; }
+.guide-privacy { display: flex; gap: 10px; align-items: flex-start; background: var(--ok-soft); color: var(--ink); border-radius: 12px; padding: 10px 14px; font-size: 14px; line-height: 1.45; }
+.guide-privacy b { color: var(--ok); }
+.gp-ico { flex: none; font-size: 16px; line-height: 1.3; }
 .guide-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .guide-steps li { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 12px; }
 .guide-steps li.next { background: #f1f6ff; }
