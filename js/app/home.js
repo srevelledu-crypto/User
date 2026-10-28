@@ -89,20 +89,21 @@ function renderRail() {
     return `<button class="rail-item ${inClass && c.id === data.activeClassId ? 'active' : ''}" data-open="${c.id}" title="${esc(c.name)}"><span class="mini-ico" style="background:${th.color};color:${th.ink}">${SubjectIcons.svg(ic.id)}</span><span class="lbl">${esc(c.name)}</span></button>`;
   }).join('');
 }
+/* Class cards are notes pinned to a board, each with its own slight tilt (fixed per class, so it
+   doesn't change between visits). */
+const NOTE_TILTS = [-1.4, 1, -0.7, 1.3, -1, 0.6];
 function renderClassesHome() {
   renderGuide();
   $('#classGrid').innerHTML = data.classes.map(c => {
     const ic = SubjectIcons.get(classIconId(c)), th = classTheme(c), room = classRoom(c);
     const sub = [c.teacher, `${c.students.length} student${c.students.length === 1 ? '' : 's'}`].filter(Boolean).map(esc).join(' · ');
-    return `<article class="class-card" data-open="${c.id}" tabindex="0" aria-label="Open ${esc(c.name)}">
-      <div class="cc-banner" style="--c1:${th.color};--c2:${shade(th.color, -10, -4)};--cc-ink:${th.ink}">
-        ${SubjectIcons.svg(ic.id, 'cc-mark')}
-        <h3 class="cc-title">${esc(c.name)}</h3>
-        <div class="cc-sub">${sub}</div>
-        <button class="cc-menu" data-menu="${c.id}" aria-label="Options for ${esc(c.name)}">${UI_ICON.dots}</button>
-      </div>
-      <span class="cc-avatar" style="color:${th.fg}">${SubjectIcons.svg(ic.id)}</span>
-      <div class="cc-foot">${esc(ic.label)}${room ? ' · ' + esc(room.name) : ''}</div>
+    const tilt = NOTE_TILTS[[...c.id].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % NOTE_TILTS.length];
+    const meta = [sub, room ? esc(room.name) : ''].filter(Boolean).join(' · ');
+    return `<article class="class-card" data-open="${c.id}" tabindex="0" aria-label="Open ${esc(c.name)}" style="--c:${th.color};--fg:${th.fg};--tilt:${tilt}deg">
+      <span class="cc-pin" aria-hidden="true"></span>
+      <span class="cc-icon">${SubjectIcons.svg(ic.id)}</span>
+      <button class="cc-menu" data-menu="${c.id}" aria-label="Options for ${esc(c.name)}">${UI_ICON.dots}</button>
+      <div class="cc-text"><h3 class="cc-title">${esc(c.name)}</h3><div class="cc-sub">${meta}</div></div>
     </article>`;
   }).join('');
 }
