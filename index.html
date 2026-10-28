@@ -339,7 +339,7 @@ h3 { font-weight: 700; }
 .rail-item.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
 .rail-item.active .ico { color: var(--accent-ink); }
 .rail-item[data-open] { padding-left: 20px; gap: 14px; }
-.rail-item[data-open] .ico { color: #fff; }
+.rail-item[data-open] .ico { color: inherit; }
 .rail-item .lbl { overflow: hidden; text-overflow: ellipsis; }
 #railClasses { display: flex; flex-direction: column; gap: 2px; }
 .rail.open .rail-item { width: calc(100% - 12px); }
@@ -349,7 +349,7 @@ h3 { font-weight: 700; }
 .rail-head { padding: 8px 24px 4px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .rail .privacy { display: block; margin: auto 16px 8px; border-radius: 12px; white-space: normal; padding: 8px 12px; }
 .mini-ico { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #fff; flex-shrink: 0; }
-.mini-ico .ico { width: 18px; height: 18px; stroke-width: 2; color: #fff; }
+.mini-ico .ico { width: 18px; height: 18px; stroke-width: 2; color: inherit; }
 .mini-ico.lg { width: 40px; height: 40px; }
 .mini-ico.lg .ico { width: 22px; height: 22px; }
 .scrim { display: none; }
@@ -387,12 +387,12 @@ h3 { font-weight: 700; }
 .class-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
 .class-card { position: relative; padding: 0; gap: 0; border: 1px solid #dadce0; border-radius: 12px; box-shadow: none; overflow: hidden; min-height: 196px; transition: box-shadow .15s ease; }
 .class-card:hover { border-color: #dadce0; box-shadow: 0 1px 3px rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15); }
-.cc-banner { position: relative; flex: 1; min-height: 150px; padding: 16px 56px 16px 20px; color: #fff; background: linear-gradient(115deg, var(--c1), var(--c2)); overflow: hidden; }
-.cc-mark { position: absolute; right: -10px; bottom: -28px; width: 124px; height: 124px; stroke: #fff; opacity: .18; stroke-width: 1.3; }
-.cc-title { margin: 0; font: 700 22px/1.25 var(--font); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-banner { position: relative; flex: 1; min-height: 150px; padding: 16px 56px 16px 20px; color: var(--cc-ink, #fff); background: linear-gradient(115deg, var(--c1), var(--c2)); overflow: hidden; }
+.cc-mark { position: absolute; right: -10px; bottom: -28px; width: 124px; height: 124px; stroke: currentColor; opacity: .18; stroke-width: 1.3; }
+.cc-title { margin: 0; font: 700 22px/1.25 var(--font); color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cc-sub { font-size: 14px; opacity: .92; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cc-menu { position: absolute; top: 8px; right: 6px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: #fff; display: grid; place-items: center; }
-.cc-menu:hover, .cc-menu:focus-visible { background: rgba(255,255,255,.2); outline: none; }
+.cc-menu { position: absolute; top: 8px; right: 6px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: inherit; display: grid; place-items: center; }
+.cc-menu:hover, .cc-menu:focus-visible { background: color-mix(in srgb, currentColor 18%, transparent); outline: none; }
 .cc-avatar { position: absolute; right: 16px; bottom: 7px; width: 76px; height: 76px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(60,64,67,.3); }
 .cc-avatar .ico { width: 38px; height: 38px; }
 .cc-foot { margin-top: auto; border-top: 1px solid #e0e0e0; padding: 12px 108px 12px 20px; font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1446,10 +1446,26 @@ const SubjectIcons = (() => {
   ];
   // Keywords are space-separated; multi-word phrases are written with a "+" placeholder below.
   const PHRASES = ['MATHS C', 'MATHS B', 'GENERAL MATH', 'ESSENTIAL MATH', 'HOME EC', 'LIFE SCI', 'CREATIVE WRIT', 'PRIMARY IND', 'PHYSICAL ED', 'FIRST AID', 'PUBLIC SPEAK'];
-  const list = L.map(([id, label, color, kw, svg]) => {
+  // Class colours come from the seats in the ClassPost logo. Each original hue maps to the nearest seat
+  // colour; "ink" is the text/glyph colour on that fill and "fg" the colour to use on white.
+  const SEAT = { blue: '#016df8', green: '#04af4f', red: '#fa3e42', orange: '#fa6002', yellow: '#fab001', teal: '#01aab5', navy: '#0a1c3f' };
+  const TO_SEAT = {
+    '#1967d2': SEAT.blue, '#3f51b5': SEAT.blue, '#4757c9': SEAT.blue,
+    '#9334e6': SEAT.yellow, // the former purples (geometry, literature, drama, philosophy)
+    '#129eaf': SEAT.teal, '#0b8a9e': SEAT.teal,
+    '#188038': SEAT.green, '#1e8e3e': SEAT.green,
+    '#d93025': SEAT.red, '#d01884': SEAT.red, '#b0532c': SEAT.red,
+    '#e8710a': SEAT.orange, '#8d5b3e': SEAT.orange,
+    '#c88a04': SEAT.yellow,
+    '#5f6368': SEAT.navy,
+  };
+  const list = L.map(([id, label, color0, kw, svg]) => {
+    const color = TO_SEAT[color0] || SEAT.blue;
+    const ink = color === SEAT.yellow ? SEAT.navy : '#ffffff';
+    const fg = color === SEAT.yellow ? '#c98a00' : color;
     let k = ' ' + kw + ' ';
     for (const p of PHRASES) k = k.split(' ' + p + ' ').join(' ' + p.replace(' ', '+') + ' ');
-    return { id, label, color, svg, kw: k.trim().split(/\s+/).filter(Boolean).map(t => t.replace('+', ' ')) };
+    return { id, label, color, ink, fg, svg, kw: k.trim().split(/\s+/).filter(Boolean).map(t => t.replace('+', ' ')) };
   });
   const byId = new Map(list.map(i => [i.id, i]));
   function guess(name) {
@@ -2326,7 +2342,7 @@ function renderStudentsTab() {
   $$('input[name="adj"]').forEach(r => { r.checked = r.value === cls.adjacency; });
   $('#classDel').disabled = data.classes.length < 2;
   const ic = SubjectIcons.get(classIconId(cls));
-  $('#classIconPreview').innerHTML = `<span class="mini-ico lg" style="background:${ic.color}">${SubjectIcons.svg(ic.id)}</span>`;
+  $('#classIconPreview').innerHTML = `<span class="mini-ico lg" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span>`;
   $('#classIconName').textContent = ic.label + (cls.icon && cls.icon !== 'auto' ? '' : ' (automatic)');
   const room = classRoom(cls);
   const seatN = room ? Core.roomSeats(room).filter(s => !s.unavailable).length : 0;
@@ -3293,7 +3309,7 @@ function renderCrumb() {
   const el = $('#crumb');
   if (CLASS_TABS.includes(ui.tab)) {
     const cls = activeClass(), ic = SubjectIcons.get(classIconId(cls));
-    el.innerHTML = `<span class="crumb-sep">›</span><span class="crumb-class"><span class="mini-ico" style="background:${ic.color}">${SubjectIcons.svg(ic.id)}</span><span class="crumb-name">${esc(cls.name)}</span></span>`;
+    el.innerHTML = `<span class="crumb-sep">›</span><span class="crumb-class"><span class="mini-ico" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span><span class="crumb-name">${esc(cls.name)}</span></span>`;
   } else if (ui.tab === 'room') el.innerHTML = '<span class="crumb-sep">›</span><span class="crumb-name">Rooms</span>';
   else el.innerHTML = '';
 }
@@ -3305,7 +3321,7 @@ function renderRail() {
   $$('#rail [data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === ui.tab));
   $('#railClasses').innerHTML = data.classes.map(c => {
     const ic = SubjectIcons.get(classIconId(c));
-    return `<button class="rail-item ${inClass && c.id === data.activeClassId ? 'active' : ''}" data-open="${c.id}" title="${esc(c.name)}"><span class="mini-ico" style="background:${ic.color}">${SubjectIcons.svg(ic.id)}</span><span class="lbl">${esc(c.name)}</span></button>`;
+    return `<button class="rail-item ${inClass && c.id === data.activeClassId ? 'active' : ''}" data-open="${c.id}" title="${esc(c.name)}"><span class="mini-ico" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span><span class="lbl">${esc(c.name)}</span></button>`;
   }).join('');
 }
 function renderClassesHome() {
@@ -3313,13 +3329,13 @@ function renderClassesHome() {
     const ic = SubjectIcons.get(classIconId(c)), room = classRoom(c);
     const sub = [c.teacher, `${c.students.length} student${c.students.length === 1 ? '' : 's'}`].filter(Boolean).map(esc).join(' · ');
     return `<article class="class-card" data-open="${c.id}" tabindex="0" aria-label="Open ${esc(c.name)}">
-      <div class="cc-banner" style="--c1:${ic.color};--c2:${shade(ic.color, -14, -6)}">
+      <div class="cc-banner" style="--c1:${ic.color};--c2:${shade(ic.color, -10, -4)};--cc-ink:${ic.ink}">
         ${SubjectIcons.svg(ic.id, 'cc-mark')}
         <h3 class="cc-title">${esc(c.name)}</h3>
         <div class="cc-sub">${sub}</div>
         <button class="cc-menu" data-menu="${c.id}" aria-label="Options for ${esc(c.name)}">${UI_ICON.dots}</button>
       </div>
-      <span class="cc-avatar" style="color:${ic.color}">${SubjectIcons.svg(ic.id)}</span>
+      <span class="cc-avatar" style="color:${ic.fg}">${SubjectIcons.svg(ic.id)}</span>
       <div class="cc-foot">${esc(ic.label)}${room ? ' · ' + esc(room.name) : ''}</div>
     </article>`;
   }).join('');
@@ -3368,7 +3384,7 @@ const classIconId = c => (c.icon && c.icon !== 'auto' && SubjectIcons.get(c.icon
 function iconPicker(cls) {
   const auto = SubjectIcons.get(SubjectIcons.guess(cls.name));
   const cur = cls.icon && cls.icon !== 'auto' ? cls.icon : 'auto';
-  const cell = (id, ic, label) => `<button class="ico-cell ${cur === id ? 'on' : ''}" data-ico="${id}" data-label="${esc(label.toLowerCase())}"><span class="ico-chip" style="background:${ic.color}">${SubjectIcons.svg(ic.id)}</span>${esc(label)}</button>`;
+  const cell = (id, ic, label) => `<button class="ico-cell ${cur === id ? 'on' : ''}" data-ico="${id}" data-label="${esc(label.toLowerCase())}"><span class="ico-chip" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span>${esc(label)}</button>`;
   const bg = document.createElement('div');
   bg.className = 'modal-bg';
   bg.innerHTML = `<div class="modal wide" role="dialog" aria-label="Choose an icon"><h3>Icon for ${esc(cls.name)}</h3>
@@ -3604,7 +3620,7 @@ function drawReel(st) {
 }
 function renderPickerTab() {
   const cls = activeClass(), p = cls.picker, ic = SubjectIcons.get(classIconId(cls));
-  $('#pkBadge').innerHTML = `<span class="pk-hex" style="--c:${ic.color}">${SubjectIcons.svg(ic.id)}</span>`;
+  $('#pkBadge').innerHTML = `<span class="pk-hex" style="--c:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span>`;
   $('#pkNoRepeat').checked = !!p.noRepeat;
   const here = presentStudents(cls).length, left = pickerPool(cls).length;
   const hist = p.picked.map(id => cls.students.find(s => s.id === id)).filter(Boolean);

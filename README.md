@@ -93,4 +93,5 @@ The tests load the solver code embedded in `index.html` and check:
 home-screen icon. The top-bar mark is drawn as inline SVG in `index.html` so it
 stays sharp at small sizes. Colours: navy `#0a1c3f`, blue `#026afa`, and the
 chair colours green `#04af4f`, red `#fa3e42`, orange `#fa6002`, yellow
-`#fab001` and teal `#01aab5`.
+`#fab001` and teal `#01aab5`. Class colours use the same six seat colours (plus navy for
+homeroom-style classes); yellow classes use navy text so they stay readable.
