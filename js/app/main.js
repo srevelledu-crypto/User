@@ -65,7 +65,7 @@ function init() {
   $('#undoBtn').addEventListener('click', undo);
   $('#redoBtn').addEventListener('click', redo);
   $('#dataBtn').addEventListener('click', dataMenu);
-  bindHome(); bindRoom(); bindStudents(); bindPlan(); bindGroups(); bindPicker(); bindHomeLearning(); bindCsvImport();
+  bindHome(); bindRoom(); bindStudents(); bindPlan(); bindGroups(); bindPicker(); bindHomeLearning(); bindCsvImport(); bindClassTools();
   window.addEventListener('resize', () => { if (ui.tab === 'room') renderRoomSvg(); });
   render();
   if (document.fonts && document.fonts.load) {

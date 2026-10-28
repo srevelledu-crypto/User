@@ -28,6 +28,7 @@ function renderPickerTab() {
     ? hist.map((s, i) => `<div class="lb-row ${i === hist.length - 1 ? 'me' : ''}"><span class="lb-rank r${i + 1}">${i + 1}</span>${avatar(s.name)}<span class="lb-name">${esc(s.name)}</span></div>`).join('')
     : '<div class="muted small">Nobody yet</div>';
   $('#pkAbsent').innerHTML = attendanceHtml(cls);
+  renderClassTools();
   if (rolling) return;
   const last = p.last && cls.students.find(s => s.id === p.last);
   $('#pkLabel').textContent = last ? `${last.name.split(/\s+/)[0]}, you're up!` : "Who's next?";

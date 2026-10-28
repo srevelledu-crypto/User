@@ -514,3 +514,31 @@ h3 { font-weight: 700; }
 .hl-rate.low .hl-bar i { background: var(--danger); }
 .hl-miss-text { color: var(--danger); font-weight: 600; }
 .csv-preview { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; max-height: 180px; overflow: auto; }
+
+/* ---- picker stage with tools alongside ---- */
+.picker-stage { grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: 24px; place-items: start stretch; align-content: start; }
+.picker-stage .pk-wrap { justify-self: center; }
+.tools-col { display: flex; flex-direction: column; gap: 16px; padding-block: 16px; min-width: 0; }
+.tool-card { border: 2px solid var(--line); border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; background: #fff; transition: border-color .2s, box-shadow .2s; }
+.tool-head { display: flex; align-items: center; gap: 8px; }
+.tool-head h2 { margin: 0; flex: 1; }
+.tool-state { font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.timer-face { position: relative; width: min(220px, 100%); aspect-ratio: 1; margin: 0 auto; }
+.timer-face svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.tm-track { fill: none; stroke: var(--line); stroke-width: 8; }
+.tm-ring { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .25s linear; }
+.timer-digits { position: absolute; inset: 0; display: grid; place-items: center; font: 800 46px/1 var(--font); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.timer-presets { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.timer-controls { flex-wrap: nowrap; }
+.tool-card.done { border-color: var(--danger); box-shadow: 0 0 0 4px var(--danger-soft); }
+.tool-card.done .timer-digits { color: var(--danger); animation: tm-pulse 1s ease-in-out infinite; }
+@keyframes tm-pulse { 50% { opacity: .4; } }
+.timer-chip { border: 0; border-radius: 999px; padding: 8px 14px; background: var(--brand-navy, #0a1c3f); color: #fff; font: 700 14px var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.timer-chip.done { background: var(--danger); }
+.pit-wrap { position: relative; }
+#ballPit { display: block; width: 100%; height: 220px; border-radius: 16px; background: #f6f7f9; }
+.pit-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: var(--danger); color: #fff; font: 800 18px var(--font); padding: 6px 16px; border-radius: 999px; box-shadow: 0 6px 20px rgba(250,62,66,.35); }
+.tool-card.loud { border-color: var(--danger); }
+input[type=range] { accent-color: var(--brand-navy, #0a1c3f); width: 100%; }
+@media (max-width: 1250px) { .picker-stage { grid-template-columns: minmax(0, 1fr); } .tools-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .tool-card.done .timer-digits { animation: none; } }
