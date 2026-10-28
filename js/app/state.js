@@ -59,7 +59,9 @@ function normClass(c) {
   out.icon = out.icon || 'auto';
   out.color = out.color || null;
   out.absent = Array.isArray(out.absent) ? out.absent : [];
-  out.groups = Object.assign({ mode: 'size', size: 4, count: 6, rules: true, list: [] }, out.groups);
+  out.groups = Object.assign({ mode: 'size', size: 4, count: 6, rules: true, avoidRepeats: true, list: [], at: null, history: [], saved: [] }, out.groups);
+  out.groups.history = (out.groups.history || []).filter(h => h && Array.isArray(h.list));
+  out.groups.saved = (out.groups.saved || []).filter(h => h && Array.isArray(h.list));
   out.picker = Object.assign({ noRepeat: true, picked: [], last: null }, out.picker);
   return out;
 }

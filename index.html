@@ -239,12 +239,22 @@
           <span class="hint grow" id="grpPreview"></span>
         </div>
         <label class="check"><input type="checkbox" id="grpRules"> Follow keep-apart and keep-together rules</label>
+        <label class="check"><input type="checkbox" id="grpAvoid"> Mix up partners from recent groups</label>
         <div class="btn-row">
           <button class="btn primary" id="grpGen" style="flex:1">✦ Make groups</button>
           <button class="btn" id="grpCopy" title="Copy the groups as text">Copy</button>
         </div>
         <div id="grpMsgs"></div>
         <div class="hint" id="grpHint">To change a group, tap a name, then tap another name to swap them or tap a group to move them there.</div>
+      </div>
+      <div class="section">
+        <div class="row"><h2 class="grow" style="margin:0">Saved group sets</h2><button class="btn sm" id="grpSave">Save current…</button></div>
+        <div class="saved-list" id="grpSaved"></div>
+      </div>
+      <div class="section">
+        <h2>Recent groupings</h2>
+        <div class="hint">Each time you make new groups, the ones you were using are kept here.</div>
+        <div class="saved-list" id="grpHistory"></div>
       </div>
       <div class="section">
         <h2>Here today</h2>
@@ -294,6 +304,7 @@
 <script src="js/core.js"></script>
 <script src="js/sample.js"></script>
 <script src="js/icons.js"></script>
+<script src="js/tools.js"></script>
 <script src="js/app/state.js"></script>
 <script src="js/app/rooms.js"></script>
 <script src="js/app/students.js"></script>

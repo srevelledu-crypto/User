@@ -473,3 +473,10 @@ h3 { font-weight: 700; }
 .nc-preview { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: #f6f7f9; }
 .nc-preview > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .nc-preview b { font-size: 16px; overflow-wrap: anywhere; }
+
+/* ---- saved group sets + recent groupings ---- */
+.saved-list { display: flex; flex-direction: column; }
+.set-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+.set-row:first-child { border-top: 0; }
+.set-row .grow { flex: 1; min-width: 0; }
+.set-row b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

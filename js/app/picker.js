@@ -44,10 +44,9 @@ function pickOne() {
   if (rolling) return;
   const cls = activeClass(), here = presentStudents(cls);
   if (!here.length) return toast('Nobody is marked here to pick from.');
-  let pool = pickerPool(cls), newRound = false;
-  if (!pool.length) { newRound = true; pool = here; }
-  if (pool.length > 1) pool = pool.filter(s => s.id !== cls.picker.last); // never the same person twice running
-  const winner = pool[Math.floor(Math.random() * pool.length)];
+  // Who gets picked is decided by Tools.pickNext (js/tools.js, unit tested); the rest is the reel.
+  const pick = Tools.pickNext({ here: here.map(s => s.id), picked: cls.picker.picked, last: cls.picker.last, noRepeat: cls.picker.noRepeat });
+  const winner = here.find(s => s.id === pick.id), newRound = pick.newRound;
   const names = here.map(s => s.name), rnd = () => names[Math.floor(Math.random() * names.length)];
   const N = 32, seq = [];
   for (let i = 0; i < N; i++) {
@@ -62,13 +61,7 @@ function pickOne() {
     done = true; rolling = false;
     $('#reel').classList.remove('spinning');
     ui.reel = { classId: cls.id, names: seq, idx: N, won: true };
-    mutate(() => {
-      const p = cls.picker;
-      if (newRound) p.picked = [];
-      p.picked.push(winner.id);
-      if (p.picked.length > 300) p.picked.shift();
-      p.last = winner.id;
-    });
+    mutate(() => { Object.assign(cls.picker, Tools.recordPick(cls.picker, pick)); });
     if (newRound) toast('Everyone has had a turn, so a new round has started.');
   };
   ui.reel = { classId: cls.id, names: seq, idx: 2, won: false };

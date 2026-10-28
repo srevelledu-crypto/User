@@ -1,62 +1,47 @@
 'use strict';
 /* =================================================================
    4. GROUPS
+   The grouping logic itself lives in js/tools.js (unit tested); this file is the UI around it:
+   making groups, swapping students, history of recent groupings and named saved sets.
 ================================================================= */
-function groupCount(cls, n) {
-  const g = cls.groups;
-  if (!n) return 1;
-  return clamp(g.mode === 'size' ? Math.ceil(n / Math.max(1, g.size)) : g.count, 1, n);
-}
-function groupSizesText(n, k) {
-  if (!n) return 'Nobody here yet';
-  const lo = Math.floor(n / k), hi = Math.ceil(n / k);
-  return `${k} group${k === 1 ? '' : 's'} of ${lo === hi ? lo : `${lo}–${hi}`}`;
-}
-/* Balanced random groups. Keep-together rules are merged into units first; units are then placed,
-   largest first, into the emptiest group with the fewest keep-apart clashes. Many random restarts,
-   keeping the best (fewest broken rules, then most even sizes). */
+const HISTORY_MAX = 12;
+const groupCount = (cls, n) => Tools.groupCount(n, cls.groups);
+const groupSizesText = Tools.groupSizesText;
+const liveList = (cls, list) => list.map(grp => grp.filter(id => !isAbsent(cls, id)));
+
 function makeGroups(cls) {
-  const ids = presentStudents(cls).map(s => s.id);
-  const n = ids.length, k = groupCount(cls, n), cap = Math.ceil(n / k);
-  const here = new Set(ids);
-  const rules = cls.groups.rules ? cls.rules.map(r => ({ ...r, members: r.members.filter(m => here.has(m)) })).filter(r => r.members.length >= 2) : [];
-  const parent = new Map(ids.map(id => [id, id]));
-  const find = x => { while (parent.get(x) !== x) x = parent.get(x); return x; };
-  for (const r of rules) if (r.type === 'together') for (const m of r.members.slice(1)) parent.set(find(m), find(r.members[0]));
-  const unitMap = new Map();
-  for (const id of ids) { const root = find(id); if (!unitMap.has(root)) unitMap.set(root, []); unitMap.get(root).push(id); }
-  const units = [...unitMap.values()];
-  const apart = new Set();
-  for (const r of rules) if (r.type === 'apart') for (const a of r.members) for (const b of r.members) if (a !== b) apart.add(a + '|' + b);
-  const clash = (unit, grp) => unit.reduce((t, a) => t + grp.filter(b => apart.has(a + '|' + b)).length, 0);
-  let best = null;
-  for (let t = 0; t < 400; t++) {
-    const order = Core.shuffle(units.slice(), Math.random).sort((a, b) => b.length - a.length);
-    const groups = Array.from({ length: k }, () => []);
-    let viol = 0, over = 0;
-    for (const u of order) {
-      const o = groups.map((grp, i) => ({ i, c: clash(u, grp), fits: grp.length + u.length <= cap, len: grp.length, r: Math.random() }))
-        .sort((a, b) => (b.fits - a.fits) || (a.c - b.c) || (a.len - b.len) || (a.r - b.r))[0];
-      groups[o.i].push(...u); viol += o.c; if (!o.fits) over++;
-    }
-    const lens = groups.map(x => x.length), score = viol * 1000 + over * 100 + Math.max(...lens) - Math.min(...lens);
-    if (!best || score < best.score) best = { groups, score };
-    if (score <= 1) break;
-  }
-  return best ? best.groups.map(grp => Core.shuffle(grp, Math.random)) : [];
+  const ids = presentStudents(cls).map(s => s.id), g = cls.groups;
+  return Tools.makeGroups({
+    ids, rules: cls.rules, k: groupCount(cls, ids.length), useRules: g.rules,
+    history: g.history.map(h => h.list), avoidRepeats: g.avoidRepeats,
+  });
 }
-function groupProblems(cls) {
-  const gi = new Map();
-  cls.groups.list.forEach((grp, i) => grp.forEach(id => { if (!isAbsent(cls, id)) gi.set(id, i); }));
-  const out = [];
-  for (const r of cls.rules) {
-    const m = r.members.filter(id => gi.has(id));
-    if (r.type === 'apart') {
-      for (let i = 0; i < m.length; i++) for (let j = i + 1; j < m.length; j++) if (gi.get(m[i]) === gi.get(m[j])) out.push({ type: 'apart', students: [m[i], m[j]] });
-    } else if (new Set(m.map(id => gi.get(id))).size > 1) out.push({ type: 'together', students: m });
-  }
-  return out;
+const groupProblems = cls => Tools.groupProblems(liveList(cls, cls.groups.list), cls.rules);
+
+/* Put the groups currently in use into the history (newest first) before replacing them. */
+function retireCurrentGroups(g) {
+  if (!g.list.some(grp => grp.length)) return;
+  g.history.unshift({ at: g.at || Date.now(), list: g.list.map(grp => grp.slice()) });
+  g.history = g.history.slice(0, HISTORY_MAX);
 }
+function setGroups(g, list) { retireCurrentGroups(g); g.list = list.map(grp => grp.slice()); g.at = Date.now(); }
+
+const whenText = at => {
+  const d = new Date(at), today = new Date();
+  const day = d.toDateString() === today.toDateString() ? 'Today' : d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+  return `${day}, ${d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })}`;
+};
+function setRow(cls, entry, kind, i) {
+  const ids = new Set(cls.students.map(s => s.id));
+  const list = entry.list.map(grp => grp.filter(id => ids.has(id))).filter(grp => grp.length);
+  const people = list.reduce((n, grp) => n + grp.length, 0);
+  const title = kind === 'saved' ? esc(entry.name) : whenText(entry.at);
+  const meta = `${list.length} group${list.length === 1 ? '' : 's'} · ${people} student${people === 1 ? '' : 's'}${kind === 'saved' ? ' · ' + whenText(entry.at) : ''}`;
+  return `<div class="set-row"><div class="grow"><b>${title}</b><div class="hint">${meta}</div></div>
+    <button class="btn sm" data-load="${kind}:${i}">Use</button>
+    ${kind === 'saved' ? `<button class="btn sm ghost icon" data-del-set="${i}" title="Delete “${esc(entry.name)}”" aria-label="Delete ${esc(entry.name)}">✕</button>` : ''}</div>`;
+}
+
 function renderGroupsTab() {
   const cls = activeClass(), g = cls.groups;
   const ids = new Set(cls.students.map(s => s.id));
@@ -66,16 +51,20 @@ function renderGroupsTab() {
   if (document.activeElement !== $('#grpN')) $('#grpN').value = g.mode === 'size' ? g.size : g.count;
   $('#grpPreview').textContent = groupSizesText(n, groupCount(cls, n));
   $('#grpRules').checked = !!g.rules;
+  $('#grpAvoid').checked = !!g.avoidRepeats;
   $('#grpAbsent').innerHTML = attendanceHtml(cls);
   const probs = g.rules && g.list.length ? groupProblems(cls) : [];
   const badIds = new Set(probs.flatMap(p => p.students));
   const nm = id => esc(shortName(cls, id));
+  const repeats = g.list.length && g.history.length ? Tools.repeatPairs(liveList(cls, g.list), g.history.map(h => h.list)) : 0;
   let msg = '';
   if (!g.list.length) msg = '<div class="msg ok">Choose a group size, then press <b>Make groups</b>.</div>';
   else if (probs.length) msg = `<div class="msg warn"><b>⚠ ${probs.length} rule${probs.length > 1 ? 's' : ''} broken</b><ul>${probs.slice(0, 6).map(p => p.type === 'apart'
     ? `<li>${nm(p.students[0])} ✕ ${nm(p.students[1])} are in the same group</li>` : `<li>${p.students.map(nm).join(' + ')} are in different groups</li>`).join('')}</ul></div>`;
-  else if (g.rules && cls.rules.length) msg = `<div class="msg ok"><b>✓ All ${cls.rules.length} rule${cls.rules.length === 1 ? '' : 's'} followed.</b></div>`;
+  else if (g.rules && cls.rules.length) msg = `<div class="msg ok"><b>✓ All ${cls.rules.length} rule${cls.rules.length === 1 ? '' : 's'} followed.</b>${g.history.length ? ` ${repeats ? `${repeats} pair${repeats === 1 ? ' is' : 's are'} together again from last time.` : 'Nobody is with the same partner as last time.'}` : ''}</div>`;
   $('#grpMsgs').innerHTML = msg;
+  $('#grpSaved').innerHTML = g.saved.length ? g.saved.map((e, i) => setRow(cls, e, 'saved', i)).join('') : '<div class="hint">No saved sets yet. Make groups you like, then save them with a name such as “Prac groups”.</div>';
+  $('#grpHistory').innerHTML = g.history.length ? g.history.map((e, i) => setRow(cls, e, 'history', i)).join('') : '<div class="hint">Nothing yet.</div>';
 
   const inGroup = new Set(g.list.flat());
   const loose = presentStudents(cls).filter(s => !inGroup.has(s.id)).map(s => s.id);
@@ -113,10 +102,16 @@ function bindGroups() {
   $('#grpMinus').addEventListener('click', () => setN(+$('#grpN').value - 1));
   $('#grpPlus').addEventListener('click', () => setN(+$('#grpN').value + 1));
   $('#grpRules').addEventListener('change', e => mutate(() => { activeClass().groups.rules = e.target.checked; }));
+  $('#grpAvoid').addEventListener('change', e => mutate(() => { activeClass().groups.avoidRepeats = e.target.checked; }));
   $('#grpGen').addEventListener('click', () => {
     const cls = activeClass();
     if (!presentStudents(cls).length) return toast('Add some students first.');
-    mutate(() => { cls.groups.list = makeGroups(cls); ui.grpSel = null; });
+    mutate(() => {
+      const g = cls.groups;
+      retireCurrentGroups(g); // first, so the groups being replaced count as the most recent history
+      g.list = makeGroups(cls).groups; g.at = Date.now();
+      ui.grpSel = null;
+    });
   });
   $('#grpCopy').addEventListener('click', async () => {
     const cls = activeClass(), L = cls.groups.list;
@@ -124,6 +119,37 @@ function bindGroups() {
     const name = id => (cls.students.find(s => s.id === id) || {}).name;
     const txt = L.map((grp, i) => `Group ${i + 1}: ${grp.filter(id => !isAbsent(cls, id)).map(name).join(', ')}`).join('\n');
     try { await navigator.clipboard.writeText(txt); toast('Groups copied ✓'); } catch { toast("Couldn't copy in this browser."); }
+  });
+  $('#grpSave').addEventListener('click', async () => {
+    const cls = activeClass(), g = cls.groups;
+    if (!g.list.some(grp => grp.length)) return toast('Make some groups first.');
+    const name = await askText('Save these groups as', '', 'e.g. Prac groups');
+    if (!name) return;
+    const i = g.saved.findIndex(e => e.name.toLowerCase() === name.toLowerCase());
+    mutate(() => {
+      const entry = { id: uid('set'), name, at: Date.now(), list: g.list.map(grp => grp.slice()) };
+      if (i >= 0) g.saved[i] = entry; else g.saved.unshift(entry);
+    });
+    toast(i >= 0 ? `Updated “${name}” ✓` : `Saved “${name}” ✓`);
+  });
+  $('#view-groups').addEventListener('click', async e => {
+    const load = e.target.closest('[data-load]'), del = e.target.closest('[data-del-set]');
+    const cls = activeClass(), g = cls.groups;
+    if (load) {
+      const [kind, i] = load.dataset.load.split(':');
+      const entry = (kind === 'saved' ? g.saved : g.history)[+i];
+      if (!entry) return;
+      mutate(() => {
+        if (kind === 'history') g.history.splice(+i, 1); // it becomes the current groups again
+        setGroups(g, entry.list);
+        ui.grpSel = null;
+      });
+      toast(kind === 'saved' ? `Using “${entry.name}”` : 'Using those groups again');
+    }
+    if (del) {
+      const entry = g.saved[+del.dataset.delSet];
+      if (entry && await confirmBox(`Delete “${entry.name}”?`, 'You can undo this.')) mutate(() => { g.saved.splice(+del.dataset.delSet, 1); });
+    }
   });
   $('#groupGrid').addEventListener('click', e => {
     const chip = e.target.closest('[data-gs]'), card = e.target.closest('[data-gi]');
