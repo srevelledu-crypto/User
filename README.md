@@ -83,7 +83,7 @@ height (e.g. 85 cm lab-height benches with stools) doesn't affect a floor plan.
 ## Tests
 
 ```
-node seating-plan/tests/solver.test.mjs
+node tests/solver.test.mjs
 ```
 
 The tests load the solver code embedded in `index.html` and check:
