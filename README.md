@@ -13,7 +13,7 @@ browser's `localStorage`. The only network requests are to Google Fonts (Figtree
 and Poppins), which carry no student data. Use **☰ Data → Export backup** to
 save a JSON file and **Import…** to load it on another computer. Import can
 merge with what's already there or replace it. The noise meter listens to the
-microphone only while it's switched on, and the sound never leaves the
+microphone only while its tab is open and switched on, and the sound never leaves the
 browser.
 
 ## How it's organised
@@ -58,8 +58,9 @@ browser.
 - **Noise meter** (its own tab): a large ball pit that bounces with the room's
   noise level. Set the limit and the sensitivity; if it stays over the limit
   for a second the page turns red and says so. It shows how long the room has
-  been calm. It keeps listening if you switch tabs, and pops up a "Too loud!"
-  message there.
+  been calm. It uses the microphone only while you're on its tab: leaving
+  the tab, switching browser tabs or minimising the window switches the
+  microphone off until you press **Start listening** again.
 - **Home learning**: add a task with a due date, then tap each student's cell
   to cycle *handed in → late → excused → not in*. After the due date, anyone
   not in shows as missing. Each student's hand-in rate is shown, and a task's

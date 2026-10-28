@@ -1,8 +1,10 @@
 'use strict';
 /* =================================================================
    7. CLASSROOM TOOLS: lesson timer and ball-pit noise meter, each on its own tab.
-   The timer keeps running on other tabs (a chip in the top bar shows the time left), and so does
-   the noise meter's listening, so its "too loud" warning still pops up as a toast.
+   The timer keeps running on other tabs (a chip in the top bar shows the time left). The noise meter
+   uses the microphone only while its tab is open and the page is visible: leaving the tab, switching
+   browser tabs or minimising the window switches the microphone off, and it stays off until Start
+   listening is pressed again.
 ================================================================= */
 
 /* ---------- shared sound (created on a click, so browsers allow it) ---------- */
@@ -70,7 +72,7 @@ function toggleTimer() {
 }
 
 /* ================= ball-pit noise meter ================= */
-const pit = { on: false, wasLoud: false, stream: null, analyser: null, buf: null, level: 0, loudFor: 0, quietSince: Date.now(), balls: [], raf: 0, last: 0, w: 0, h: 0 };
+const pit = { on: false, stream: null, analyser: null, buf: null, level: 0, loudFor: 0, quietSince: Date.now(), balls: [], raf: 0, last: 0, w: 0, h: 0 };
 const PIT_COLOURS = ['#016df8', '#04af4f', '#fa3e42', '#fa6002', '#fab001', '#01aab5'];
 function pitSize() {
   const cv = $('#ballPit'), dpr = window.devicePixelRatio || 1;
@@ -149,8 +151,6 @@ function pitFrame(ts) {
   const state = visible || pit.on ? stepPit(dt) : null;
   if (visible && state) drawPit(state);
   if (state) {
-    if (state.tooLoud && !pit.wasLoud && ui.tab !== 'noise') toast('🔊 Too loud!');
-    pit.wasLoud = state.tooLoud;
     $('#nmBanner').hidden = !state.tooLoud;
     $('#noiseCard').classList.toggle('loud', state.tooLoud);
     if (pit.on) {
@@ -183,7 +183,7 @@ function stopNoise() {
   $('#nmToggle').textContent = 'Start listening';
   $('#nmState').textContent = 'Off';
   $('#nmBanner').hidden = true; $('#noiseCard').classList.remove('loud');
-  noiseMessage('Uses the microphone to measure how loud the room is. Nothing is recorded or sent anywhere.');
+  noiseMessage('Uses the microphone only while this page is open and you’ve pressed Start. It switches off when you leave the page. Nothing is recorded or sent anywhere.');
   wakePit();
 }
 function noiseMessage(t) { $('#nmHint').textContent = t; }
@@ -202,6 +202,7 @@ function bindClassTools() {
   $('#timerChip').addEventListener('click', () => { if (CLASS_TABS.includes(ui.tab) || ui.tab === 'classes') setTab('timer'); });
   $('#nmToggle').addEventListener('click', () => (pit.on ? stopNoise() : startNoise()));
   $('#nmLimit').addEventListener('input', () => { $('#nmLimitText').textContent = `${$('#nmLimit').value}%`; wakePit(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && pit.on) stopNoise(); });
   window.addEventListener('resize', () => { pit.balls = []; if (ui.tab === 'noise') wakePit(); });
   drawTimer();
 }
