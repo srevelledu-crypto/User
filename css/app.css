@@ -458,13 +458,13 @@ h3 { font-weight: 700; }
   .pill-xl, .outline-pill { width: 100%; min-width: 0; }
 }
 
-/* ---- ClassPost brand: navy + blue wordmark, chair colours from the logo ---- */
+/* ---- ClassPost brand: blue + navy wordmark, leaf colours from the tree logo ---- */
 :root { --brand-navy: #0a1c3f; --brand-blue: #026afa; --accent: #026afa; --accent-soft: #e6f0ff; --accent-ink: #0157c8; --ink: #0f1a2e; }
 .brand { gap: 10px; color: var(--brand-navy); }
-.brand .logo, .brand .logo svg { width: 40px; height: 40px; }
-.brand-name { font: 800 23px/1 var(--font); letter-spacing: -.02em; color: var(--brand-navy); }
-.brand-name .post { color: var(--brand-blue); }
-.brand:hover .brand-name { color: var(--brand-navy); }
+.brand .logo, .brand .logo svg { width: 44px; height: 40px; }
+.brand-name { font: 800 23px/1 var(--font); letter-spacing: -.02em; color: var(--brand-blue); }
+.brand-name .post { color: var(--brand-navy); }
+.brand:hover .brand-name { color: var(--brand-blue); }
 .btn.primary { background: var(--brand-navy); border-color: var(--brand-navy); }
 .btn.primary:hover { background: #16305f; border-color: #16305f; }
 .seg button.on, .chip.sel { background: var(--brand-navy); border-color: var(--brand-navy); }

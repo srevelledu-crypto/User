@@ -225,7 +225,7 @@ function bindHome() {
 /* ---------- attendance ---------- */
 const isAbsent = (cls, id) => cls.absent.includes(id);
 const presentStudents = cls => cls.students.filter(s => !isAbsent(cls, s.id));
-/* Each class gets one of the six seat colours from the logo, chosen at random when it is created
+/* Each class gets one of the six leaf colours from the logo, chosen at random when it is created
    (preferring colours no other class uses yet). Yellow takes navy text for contrast. */
 const SEAT_COLOURS = { blue: '#016df8', green: '#04af4f', red: '#fa3e42', orange: '#fa6002', yellow: '#fab001', teal: '#01aab5' };
 function pickSeatColour() {

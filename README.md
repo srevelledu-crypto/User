@@ -169,10 +169,14 @@ node tests/tools.test.mjs
 
 ## Branding
 
-`brand/` holds the ClassPost logo (`classpost-logo.png`), the favicon and the
-home-screen icon. The top-bar mark is drawn as inline SVG in `index.html` so it
-stays sharp at small sizes. Colours: navy `#0a1c3f`, blue `#026afa`, and the
-chair colours green `#04af4f`, red `#fa3e42`, orange `#fa6002`, yellow
-`#fab001` and teal `#01aab5`. Each class gets one of the six seat colours at random when it's
-created (no repeats until all six are used) and can be changed under
-**Colour & icon**; yellow classes use navy text so they stay readable.
+`brand/` holds the ClassPost logo (`classpost-logo.png`, a tree whose leaves
+carry open books), the tree on its own as an SVG (`classpost-mark.svg`), the
+favicon and the home-screen icon. The top bar uses a simplified tree (the five
+big leaves, no books) drawn as inline SVG in `index.html`, so it stays sharp
+and readable at small sizes. The wordmark is "Class" in blue `#026afa` and
+"Post" in navy `#0a1c3f`.
+
+Class colours come from the tree's leaves: blue `#016df8`, green `#04af4f`,
+red `#fa3e42`, orange `#fa6002`, yellow `#fab001` and teal `#01aab5`. Each
+class gets one at random when it's created (no repeats until all six are used)
+and can be changed under **Colour & icon**.

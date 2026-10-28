@@ -57,7 +57,7 @@ const SubjectIcons = (() => {
   ];
   // Keywords are space-separated; multi-word phrases are written with a "+" placeholder below.
   const PHRASES = ['MATHS C', 'MATHS B', 'GENERAL MATH', 'ESSENTIAL MATH', 'HOME EC', 'LIFE SCI', 'CREATIVE WRIT', 'PRIMARY IND', 'PHYSICAL ED', 'FIRST AID', 'PUBLIC SPEAK'];
-  // Class colours come from the seats in the ClassPost logo. Each original hue maps to the nearest seat
+  // Class colours come from the leaves of the ClassPost tree logo. Each original hue maps to the nearest leaf
   // colour; "ink" is the text/glyph colour on that fill and "fg" the colour to use on white.
   const SEAT = { blue: '#016df8', green: '#04af4f', red: '#fa3e42', orange: '#fa6002', yellow: '#fab001', teal: '#01aab5', navy: '#0a1c3f' };
   const TO_SEAT = {
