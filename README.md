@@ -1,9 +1,8 @@
 # Classroom resources
 
-This repository's projects live on separate branches:
+This repository's projects live on their own branches:
 
-| Project | Where |
+| Project | Branch |
 |---|---|
-| The Thistlewood Game Works: Year 10 chemistry escape game | [`chem-escape/`](chem-escape/) on this branch |
-| Seating Planner: offline classroom seating plan generator | the [`seating-plan-generator`](../../tree/seating-plan-generator) branch |
-| QLD Science Help: static revision site | the [`claude/QLDsciencehelp`](../../tree/claude/QLDsciencehelp) branch |
+| Seating Planner: offline classroom seating plan generator | [`seating-plan-generator`](../../tree/seating-plan-generator) |
+| QLD Science Help: static revision site | [`claude/QLDsciencehelp`](../../tree/claude/QLDsciencehelp) |
