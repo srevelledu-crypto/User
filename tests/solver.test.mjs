@@ -1,18 +1,11 @@
 // Solver tests. Run with: node classpost/tests/solver.test.mjs
-// Loads the exact Core + Sample code embedded in index.html.
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+// Loads the same Core + Sample scripts the page uses (js/core.js, js/sample.js).
+import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
 
-const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'index.html'), 'utf8');
-const block = (a, b) => html.slice(html.indexOf(a), html.indexOf(b));
-const ctx = { module: undefined };
-vm.createContext(ctx);
-vm.runInContext(block('/*CORE-START*/', '/*CORE-END*/') + ';globalThis.Core=Core;', ctx);
-vm.runInContext(block('/*SAMPLE-START*/', '/*SAMPLE-END*/') + ';globalThis.Sample=Sample;', ctx);
-const { Core, Sample } = ctx;
+const require = createRequire(import.meta.url);
+const Core = require('../js/core.js');
+const Sample = require('../js/sample.js');
 
 let passed = 0;
 function test(name, fn) {
