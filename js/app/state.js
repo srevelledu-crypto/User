@@ -29,7 +29,7 @@ ui.selItem = null; ui.selVertex = null; ui.drawPts = null; ui.drawHover = null; 
 ui.grpSel = null; ui.preview = null; ui.ruleSel = new Set(); ui.selStudent = null; ui.result = null; ui.chipFilter = '';
 
 function readJSON(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
-function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify({ tab: ui.tab, railOpen: ui.railOpen, tool: ui.tool, showDist: ui.showDist, showPrivate: ui.showPrivate, snapAngles: ui.snapAngles })); } catch { /* ignore */ } }
+function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify({ tab: ui.tab, railOpen: ui.railOpen, tool: ui.tool, showDist: ui.showDist, showPrivate: ui.showPrivate, snapAngles: ui.snapAngles, guide: ui.guide })); } catch { /* ignore */ } }
 let saveTimer = null;
 function save() {
   clearTimeout(saveTimer);
@@ -193,6 +193,8 @@ function render() {
   $$('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === ui.tab));
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + ui.tab));
   $('#classTabs').hidden = !CLASS_TABS.includes(ui.tab);
+  $('#presentBtn').hidden = !CLASS_TABS.includes(ui.tab);
+  if (ui.present && !CLASS_TABS.includes(ui.tab)) setPresent(false);
   renderCrumb();
   renderRail();
   syncUndoButtons();

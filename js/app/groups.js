@@ -75,7 +75,7 @@ function renderGroupsTab() {
   const pal = PALETTES[cls.palette] || PALETTES.pastel;
   $('#groupGrid').innerHTML = g.list.length
     ? g.list.map((grp, i) => card(`Group ${i + 1}`, i, grp, pal.tables[i % pal.tables.length])).join('') + (loose.length ? card('Not in a group', -1, loose) : '')
-    : `<div class="empty">${n ? `${groupSizesText(n, groupCount(cls, n))} will be made from the ${n} students here.` : 'Add students on the Students tab first.'}</div>`;
+    : `<div class="empty">${n ? `${groupSizesText(n, groupCount(cls, n))} will be made from the ${n} students here.<div><button class="btn primary" data-make-groups>✦ Make groups</button></div>` : 'Add students on the Students tab first.'}</div>`;
   $('#grpHint').hidden = !g.list.length;
 }
 function regroup(a, b, toGi) {
@@ -152,6 +152,7 @@ function bindGroups() {
     }
   });
   $('#groupGrid').addEventListener('click', e => {
+    if (e.target.closest('[data-make-groups]')) { $('#grpGen').click(); return; }
     const chip = e.target.closest('[data-gs]'), card = e.target.closest('[data-gi]');
     if (chip) {
       const id = chip.dataset.gs;

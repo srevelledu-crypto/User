@@ -90,6 +90,7 @@ function renderRail() {
   }).join('');
 }
 function renderClassesHome() {
+  renderGuide();
   $('#classGrid').innerHTML = data.classes.map(c => {
     const ic = SubjectIcons.get(classIconId(c)), th = classTheme(c), room = classRoom(c);
     const sub = [c.teacher, `${c.students.length} student${c.students.length === 1 ? '' : 's'}`].filter(Boolean).map(esc).join(' · ');

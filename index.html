@@ -27,6 +27,7 @@
     </nav>
     <div class="top-actions">
       <button class="timer-chip" id="timerChip" hidden title="Lesson timer: open the timer"></button>
+      <button class="icon-btn" id="presentBtn" title="Display mode for the projector" aria-label="Display mode for the projector"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8"/></svg></button>
       <button class="icon-btn" id="undoBtn" title="Undo (Ctrl/Cmd+Z)" aria-label="Undo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
       <button class="icon-btn" id="redoBtn" title="Redo (Ctrl/Cmd+Shift+Z)" aria-label="Redo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
       <button class="icon-btn create" id="createBtn" title="Create a class or import a backup" aria-label="Create"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -50,7 +51,9 @@
     <div class="content">
       <div class="home">
         <h1>Your classes</h1>
+        <div id="guide"></div>
         <div class="class-grid" id="classGrid"></div>
+        <div><button class="linklike" id="guideShow" hidden>Show the getting-started guide</button></div>
       </div>
     </div>
   </section>
@@ -350,6 +353,7 @@
   </main>
   </div>
 </div>
+<button class="present-exit" id="presentExit" hidden>Exit display mode <kbd>Esc</kbd></button>
 <div id="printArea"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <input type="file" id="csvFile" accept=".csv,.txt,text/csv,text/plain" hidden>
@@ -366,6 +370,8 @@
 <script src="js/app/picker.js"></script>
 <script src="js/app/homelearning.js"></script>
 <script src="js/app/classtools.js"></script>
+<script src="js/app/present.js"></script>
+<script src="js/app/guide.js"></script>
 <script src="js/app/data.js"></script>
 <script src="js/app/main.js"></script>
 </body>
