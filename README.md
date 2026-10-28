@@ -17,7 +17,8 @@ merge with what's already there or replace it.
 
 - **Your classes** (home): one card per class; click a card to open it, or
   use its **⋮** menu to rename, change the icon, duplicate or delete it. The
-  **＋** button (top right) creates a class or imports a backup. The left rail
+  **＋** button (top right) creates a class (name and colour, with a preview of
+  its automatic icon) or imports a backup. The left rail
   lists every class and collapses to icons with the **☰** button.
 - **Class icons**: 50 subject icons. Each class gets one automatically from
   its name ("12CHEM", "Year 9 Maths", "Physical Education", "Japanese"…), and

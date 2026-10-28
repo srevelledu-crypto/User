@@ -483,6 +483,9 @@ h3 { font-weight: 700; }
 .seat-sw { width: 38px; height: 38px; border-radius: 11px; border: 3px solid #fff; box-shadow: 0 0 0 1.5px var(--line-2); padding: 0; }
 .seat-sw:hover { transform: translateY(-1px); }
 .seat-sw.on { box-shadow: 0 0 0 3px var(--brand-navy, #0a1c3f); }
+.nc-preview { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: #f6f7f9; }
+.nc-preview > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nc-preview b { font-size: 16px; overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -3304,11 +3307,48 @@ function openClass(id, tab) {
   data.activeClassId = id; ui.ruleSel.clear(); ui.selStudent = null; ui.grpSel = null;
   save(); setTab(tab || 'students');
 }
+/* Set up a class: name plus seat colour (a random unused colour is preselected), with a live
+   preview of the automatic subject icon in that colour. */
+const seatSwatches = sel => Object.keys(SEAT_COLOURS).map(k => `<button type="button" class="seat-sw ${k === sel ? 'on' : ''}" data-col="${k}" style="background:${SEAT_COLOURS[k]}" title="${k[0].toUpperCase() + k.slice(1)}" aria-label="${k}" aria-pressed="${k === sel}"></button>`).join('');
 async function newClass() {
-  const name = await askText('New class', '', 'e.g. 12CHEM');
-  if (!name) return;
-  mutate(() => { const c = blankClass(name); c.roomId = data.activeRoomId; c.color = pickSeatColour(); data.classes.push(c); data.activeClassId = c.id; ui.tab = 'students'; });
-  saveUI();
+  let colour = pickSeatColour();
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.innerHTML = `<form class="modal" role="dialog" aria-label="New class"><h3>New class</h3>
+    <label class="field"><span>Class name</span><input class="input" id="ncName" placeholder="e.g. 12CHEM or Year 9 Maths" autocomplete="off"></label>
+    <div class="field"><span>Colour</span><div class="swatch-row" id="ncSwatches">${seatSwatches(colour)}</div></div>
+    <div class="nc-preview" id="ncPreview"></div>
+    <div class="btn-row"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Create class</button></div></form>`;
+  document.body.appendChild(bg);
+  const inp = bg.querySelector('#ncName');
+  const preview = () => {
+    const name = inp.value.trim(), ic = SubjectIcons.get(SubjectIcons.guess(name)), th = classTheme({ color: colour });
+    bg.querySelector('#ncPreview').innerHTML = `<span class="mini-ico lg" style="background:${th.color};color:${th.ink}">${SubjectIcons.svg(ic.id)}</span>
+      <span><b>${esc(name || 'New class')}</b><span class="hint">Icon: ${esc(ic.label)} (change it later under Colour &amp; icon)</span></span>`;
+  };
+  const close = () => bg.remove();
+  bg.addEventListener('click', e => {
+    if (e.target === bg || e.target.closest('[data-close]')) return close();
+    const sw = e.target.closest('[data-col]');
+    if (sw) {
+      colour = sw.dataset.col;
+      bg.querySelector('#ncSwatches').innerHTML = seatSwatches(colour);
+      bg.querySelector('#ncSwatches .on').focus(); // keep keyboard focus after re-drawing
+      preview();
+    }
+  });
+  bg.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  inp.addEventListener('input', preview);
+  bg.querySelector('form').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = inp.value.trim();
+    if (!name) { inp.focus(); return toast('Give the class a name first.'); }
+    close();
+    mutate(() => { const c = blankClass(name); c.roomId = data.activeRoomId; c.color = colour; data.classes.push(c); data.activeClassId = c.id; ui.tab = 'students'; });
+    saveUI();
+  });
+  preview();
+  inp.focus();
 }
 const UI_ICON = { dots: '<svg class="ico fill" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' };
 function renderCrumb() {
