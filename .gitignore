@@ -1,5 +1,2 @@
-.env
-.env.local
 node_modules/
-.vercel/
 chem-escape/tests/screenshots/
