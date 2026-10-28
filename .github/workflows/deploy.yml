@@ -1,10 +1,11 @@
-# Deploy the static site to GitHub Pages on every push to main.
+# Deploy the static site to GitHub Pages on every push to claude/QLDsciencehelp,
+# the branch that holds the website.
 # One-time setup: repo Settings → Pages → Build and deployment → Source: "GitHub Actions".
 name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [claude/QLDsciencehelp]
   workflow_dispatch:
 
 permissions:

@@ -84,7 +84,9 @@ Each topic can also have `keywords: ["…"]`, which are extra words for search. 
 
 ## Hosting on GitHub Pages and adding a domain
 
-**First deploy:** in the repo on GitHub, go to **Settings → Pages → Build and deployment → Source** and choose **GitHub Actions**. Every push to `main` then runs `.github/workflows/deploy.yml`, which checks the site and publishes it. Repo-only files (`tools/`, `incoming/`, README) aren't published.
+**First deploy:** in the repo on GitHub, go to **Settings → Pages → Build and deployment → Source** and choose **GitHub Actions**. Every push to the `claude/QLDsciencehelp` branch then runs `.github/workflows/deploy.yml`, which checks the site and publishes it. Repo-only files (`tools/`, `incoming/`, README) aren't published.
+
+This branch isn't the repository's default branch, so GitHub may block the deploy with "Branch is not allowed to deploy to github-pages due to environment protection rules". If it does, go to **Settings → Environments → github-pages → Deployment branches and tags**, add `claude/QLDsciencehelp`, then re-run the workflow (**Actions → Deploy to GitHub Pages → Run workflow**).
 
 > The site's files use root-relative paths (`/assets/...`). When GitHub serves it from a sub-folder, e.g. `https://srevelledu-crypto.github.io/QLDsciencehelp.com/` before a custom domain is set, the deploy workflow prefixes those paths automatically (`tools/apply-base-path.mjs`, run on the published copy only). Once a custom domain is set, the prefix is dropped automatically on the next deploy.
 
