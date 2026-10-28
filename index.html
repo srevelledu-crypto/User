@@ -479,6 +479,10 @@ h3 { font-weight: 700; }
 .ico-cell.on { border-color: var(--brand-navy); }
 .toast { background: var(--brand-navy); }
 @media (max-width: 900px) { .brand-name { font-size: 21px; } }
+.swatch-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.seat-sw { width: 38px; height: 38px; border-radius: 11px; border: 3px solid #fff; box-shadow: 0 0 0 1.5px var(--line-2); padding: 0; }
+.seat-sw:hover { transform: translateY(-1px); }
+.seat-sw.on { box-shadow: 0 0 0 3px var(--brand-navy, #0a1c3f); }
 </style>
 </head>
 <body>
@@ -584,7 +588,7 @@ h3 { font-weight: 700; }
         <h2>Class details</h2>
         <label class="field"><span>Class name</span><input class="input" id="className" placeholder="e.g. 10PHYS"></label>
         <label class="field"><span>Teacher</span><input class="input" id="classTeacher" placeholder="e.g. Ms Delaney"></label>
-        <div class="field"><span>Icon</span><div class="row"><span id="classIconPreview"></span><span class="grow small" id="classIconName"></span><button class="btn sm" id="classIconBtn">Change</button></div></div>
+        <div class="field"><span>Colour &amp; icon</span><div class="row"><span id="classIconPreview"></span><span class="grow small" id="classIconName"></span><button class="btn sm" id="classIconBtn">Change</button></div></div>
         <label class="field"><span>Room for seating plans</span><select class="input" id="classRoom"></select></label>
         <div class="btn-row"><button class="btn sm danger" id="classDel">Delete class</button></div>
       </div>
@@ -1547,6 +1551,7 @@ function normClass(c) {
   out.students = (out.students || []).map(s => Object.assign({ id: uid('st'), name: '', front: false, lock: null }, s));
   out.rules = (out.rules || []).filter(r => r && Array.isArray(r.members)).map(r => Object.assign({ id: uid('rule'), type: 'apart' }, r));
   out.icon = out.icon || 'auto';
+  out.color = out.color || null;
   out.absent = Array.isArray(out.absent) ? out.absent : [];
   out.groups = Object.assign({ mode: 'size', size: 4, count: 6, rules: true, list: [] }, out.groups);
   out.picker = Object.assign({ noRepeat: true, picked: [], last: null }, out.picker);
@@ -1556,6 +1561,7 @@ function freshData() {
   return { version: 3, rooms: Sample.rooms().map(normRoom), classes: Sample.classes().map(normClass), activeRoomId: 'room_b12', activeClassId: 'class_10sci' };
 }
 function fixRefs() {
+  for (const c of data.classes) if (!c.color) c.color = pickSeatColour();
   if (!data.rooms.length) data.rooms.push(blankRoom());
   if (!data.classes.length) data.classes.push(blankClass());
   if (!data.rooms.some(r => r.id === data.activeRoomId)) data.activeRoomId = data.rooms[0].id;
@@ -2341,8 +2347,8 @@ function renderStudentsTab() {
   $('#classRoom').innerHTML = data.rooms.map(r => `<option value="${r.id}" ${r.id === cls.roomId ? 'selected' : ''}>${esc(r.name)}</option>`).join('');
   $$('input[name="adj"]').forEach(r => { r.checked = r.value === cls.adjacency; });
   $('#classDel').disabled = data.classes.length < 2;
-  const ic = SubjectIcons.get(classIconId(cls));
-  $('#classIconPreview').innerHTML = `<span class="mini-ico lg" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span>`;
+  const ic = SubjectIcons.get(classIconId(cls)), th = classTheme(cls);
+  $('#classIconPreview').innerHTML = `<span class="mini-ico lg" style="background:${th.color};color:${th.ink}">${SubjectIcons.svg(ic.id)}</span>`;
   $('#classIconName').textContent = ic.label + (cls.icon && cls.icon !== 'auto' ? '' : ' (automatic)');
   const room = classRoom(cls);
   const seatN = room ? Core.roomSeats(room).filter(s => !s.unavailable).length : 0;
@@ -3301,15 +3307,15 @@ function openClass(id, tab) {
 async function newClass() {
   const name = await askText('New class', '', 'e.g. 12CHEM');
   if (!name) return;
-  mutate(() => { const c = blankClass(name); c.roomId = data.activeRoomId; data.classes.push(c); data.activeClassId = c.id; ui.tab = 'students'; });
+  mutate(() => { const c = blankClass(name); c.roomId = data.activeRoomId; c.color = pickSeatColour(); data.classes.push(c); data.activeClassId = c.id; ui.tab = 'students'; });
   saveUI();
 }
 const UI_ICON = { dots: '<svg class="ico fill" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' };
 function renderCrumb() {
   const el = $('#crumb');
   if (CLASS_TABS.includes(ui.tab)) {
-    const cls = activeClass(), ic = SubjectIcons.get(classIconId(cls));
-    el.innerHTML = `<span class="crumb-sep">›</span><span class="crumb-class"><span class="mini-ico" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span><span class="crumb-name">${esc(cls.name)}</span></span>`;
+    const cls = activeClass(), ic = SubjectIcons.get(classIconId(cls)), th = classTheme(cls);
+    el.innerHTML = `<span class="crumb-sep">›</span><span class="crumb-class"><span class="mini-ico" style="background:${th.color};color:${th.ink}">${SubjectIcons.svg(ic.id)}</span><span class="crumb-name">${esc(cls.name)}</span></span>`;
   } else if (ui.tab === 'room') el.innerHTML = '<span class="crumb-sep">›</span><span class="crumb-name">Rooms</span>';
   else el.innerHTML = '';
 }
@@ -3320,22 +3326,22 @@ function renderRail() {
   document.body.classList.toggle('rail-open', !!ui.railOpen);
   $$('#rail [data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === ui.tab));
   $('#railClasses').innerHTML = data.classes.map(c => {
-    const ic = SubjectIcons.get(classIconId(c));
-    return `<button class="rail-item ${inClass && c.id === data.activeClassId ? 'active' : ''}" data-open="${c.id}" title="${esc(c.name)}"><span class="mini-ico" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span><span class="lbl">${esc(c.name)}</span></button>`;
+    const ic = SubjectIcons.get(classIconId(c)), th = classTheme(c);
+    return `<button class="rail-item ${inClass && c.id === data.activeClassId ? 'active' : ''}" data-open="${c.id}" title="${esc(c.name)}"><span class="mini-ico" style="background:${th.color};color:${th.ink}">${SubjectIcons.svg(ic.id)}</span><span class="lbl">${esc(c.name)}</span></button>`;
   }).join('');
 }
 function renderClassesHome() {
   $('#classGrid').innerHTML = data.classes.map(c => {
-    const ic = SubjectIcons.get(classIconId(c)), room = classRoom(c);
+    const ic = SubjectIcons.get(classIconId(c)), th = classTheme(c), room = classRoom(c);
     const sub = [c.teacher, `${c.students.length} student${c.students.length === 1 ? '' : 's'}`].filter(Boolean).map(esc).join(' · ');
     return `<article class="class-card" data-open="${c.id}" tabindex="0" aria-label="Open ${esc(c.name)}">
-      <div class="cc-banner" style="--c1:${ic.color};--c2:${shade(ic.color, -10, -4)};--cc-ink:${ic.ink}">
+      <div class="cc-banner" style="--c1:${th.color};--c2:${shade(th.color, -10, -4)};--cc-ink:${th.ink}">
         ${SubjectIcons.svg(ic.id, 'cc-mark')}
         <h3 class="cc-title">${esc(c.name)}</h3>
         <div class="cc-sub">${sub}</div>
         <button class="cc-menu" data-menu="${c.id}" aria-label="Options for ${esc(c.name)}">${UI_ICON.dots}</button>
       </div>
-      <span class="cc-avatar" style="color:${ic.fg}">${SubjectIcons.svg(ic.id)}</span>
+      <span class="cc-avatar" style="color:${th.fg}">${SubjectIcons.svg(ic.id)}</span>
       <div class="cc-foot">${esc(ic.label)}${room ? ' · ' + esc(room.name) : ''}</div>
     </article>`;
   }).join('');
@@ -3366,10 +3372,10 @@ function classMenu(anchor, id) {
   popMenu(anchor, [
     { label: 'Open', fn: () => openClass(id) },
     { label: 'Rename', fn: async () => { const n = await askText('Rename class', c.name); if (n) mutate(() => { c.name = n; }); } },
-    { label: 'Change icon', fn: () => iconPicker(c) },
+    { label: 'Colour & icon', fn: () => iconPicker(c) },
     { label: 'Duplicate', fn: () => mutate(() => {
       const d = normClass({ ...JSON.parse(JSON.stringify(c)), id: uid('class'), name: c.name + ' (copy)', plan: { assign: {} }, groups: undefined, picker: undefined, absent: [] });
-      delete d.sample; data.classes.push(d);
+      delete d.sample; d.color = pickSeatColour(); data.classes.push(d);
     }) },
     { label: 'Delete', danger: true, fn: async () => {
       if (data.classes.length < 2) return toast('You need at least one class.');
@@ -3382,12 +3388,13 @@ function classMenu(anchor, id) {
 /* ---------- icon picker ---------- */
 const classIconId = c => (c.icon && c.icon !== 'auto' && SubjectIcons.get(c.icon).id === c.icon) ? c.icon : SubjectIcons.guess(c.name);
 function iconPicker(cls) {
-  const auto = SubjectIcons.get(SubjectIcons.guess(cls.name));
+  const auto = SubjectIcons.get(SubjectIcons.guess(cls.name)), th = classTheme(cls);
   const cur = cls.icon && cls.icon !== 'auto' ? cls.icon : 'auto';
-  const cell = (id, ic, label) => `<button class="ico-cell ${cur === id ? 'on' : ''}" data-ico="${id}" data-label="${esc(label.toLowerCase())}"><span class="ico-chip" style="background:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span>${esc(label)}</button>`;
+  const cell = (id, ic, label) => `<button class="ico-cell ${cur === id ? 'on' : ''}" data-ico="${id}" data-label="${esc(label.toLowerCase())}"><span class="ico-chip" style="background:${th.color};color:${th.ink}">${SubjectIcons.svg(ic.id)}</span>${esc(label)}</button>`;
   const bg = document.createElement('div');
   bg.className = 'modal-bg';
-  bg.innerHTML = `<div class="modal wide" role="dialog" aria-label="Choose an icon"><h3>Icon for ${esc(cls.name)}</h3>
+  bg.innerHTML = `<div class="modal wide" role="dialog" aria-label="Choose an icon"><h3>Colour and icon for ${esc(cls.name)}</h3>
+    <div class="swatch-row" role="group" aria-label="Class colour">${Object.keys(SEAT_COLOURS).map(k => `<button class="seat-sw ${classTheme(cls).color === SEAT_COLOURS[k] ? 'on' : ''}" data-col="${k}" style="background:${SEAT_COLOURS[k]}" title="${k[0].toUpperCase() + k.slice(1)}" aria-label="${k}"></button>`).join('')}</div>
     <p>Automatic picks an icon from the class name. Choose one to use it instead.</p>
     <input class="input" id="icoFilter" placeholder="Search subjects…" aria-label="Search subjects">
     <div class="ico-grid">${cell('auto', auto, `Automatic (${auto.label})`)}${SubjectIcons.list.map(ic => cell(ic.id, ic, ic.label)).join('')}</div>
@@ -3396,6 +3403,14 @@ function iconPicker(cls) {
   const close = () => bg.remove();
   bg.addEventListener('click', e => {
     if (e.target === bg || e.target.closest('[data-close]')) return close();
+    const sw = e.target.closest('[data-col]');
+    if (sw) {
+      mutate(() => { cls.color = sw.dataset.col; });
+      const t = classTheme(cls);
+      bg.querySelectorAll('.seat-sw').forEach(x => x.classList.toggle('on', x === sw));
+      bg.querySelectorAll('.ico-chip').forEach(ch => { ch.style.background = t.color; ch.style.color = t.ink; });
+      return;
+    }
     const b = e.target.closest('[data-ico]');
     if (b) { close(); mutate(() => { cls.icon = b.dataset.ico; }); }
   });
@@ -3448,6 +3463,20 @@ function bindHome() {
 /* ---------- attendance ---------- */
 const isAbsent = (cls, id) => cls.absent.includes(id);
 const presentStudents = cls => cls.students.filter(s => !isAbsent(cls, s.id));
+/* Each class gets one of the six seat colours from the logo, chosen at random when it is created
+   (preferring colours no other class uses yet). Yellow takes navy text for contrast. */
+const SEAT_COLOURS = { blue: '#016df8', green: '#04af4f', red: '#fa3e42', orange: '#fa6002', yellow: '#fab001', teal: '#01aab5' };
+function pickSeatColour() {
+  const used = {};
+  for (const c of (data && data.classes) || []) if (c.color) used[c.color] = (used[c.color] || 0) + 1;
+  const keys = Object.keys(SEAT_COLOURS), least = Math.min(...keys.map(k => used[k] || 0));
+  const pool = keys.filter(k => (used[k] || 0) === least);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function classTheme(c) {
+  const key = SEAT_COLOURS[c.color] ? c.color : 'blue', color = SEAT_COLOURS[key];
+  return { color, ink: key === 'yellow' ? '#0a1c3f' : '#ffffff', fg: key === 'yellow' ? '#c98a00' : color };
+}
 const AV_COLORS = ['#016df8', '#04af4f', '#fa3e42', '#fa6002', '#e09a00', '#01aab5', '#7b4dff', '#0a1c3f'];
 function avatar(name) {
   let h = 0;
@@ -3619,8 +3648,8 @@ function drawReel(st) {
   tr.style.transform = reelOffset(st.idx);
 }
 function renderPickerTab() {
-  const cls = activeClass(), p = cls.picker, ic = SubjectIcons.get(classIconId(cls));
-  $('#pkBadge').innerHTML = `<span class="pk-hex" style="--c:${ic.color};color:${ic.ink}">${SubjectIcons.svg(ic.id)}</span>`;
+  const cls = activeClass(), p = cls.picker, ic = SubjectIcons.get(classIconId(cls)), th = classTheme(cls);
+  $('#pkBadge').innerHTML = `<span class="pk-hex" style="--c:${th.color};color:${th.ink}">${SubjectIcons.svg(ic.id)}</span>`;
   $('#pkNoRepeat').checked = !!p.noRepeat;
   const here = presentStudents(cls).length, left = pickerPool(cls).length;
   const hist = p.picked.map(id => cls.students.find(s => s.id === id)).filter(Boolean);
