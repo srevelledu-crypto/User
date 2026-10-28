@@ -135,6 +135,7 @@
             <textarea class="input" id="pasteNames" rows="4" placeholder="Olivia Bennett&#10;Jack Thompson&#10;…"></textarea></label>
           <div class="btn-row">
             <button class="btn primary sm" id="addNames">Add to class</button>
+            <button class="btn sm" id="csvBtn" title="Import a class list exported from your school system or a spreadsheet">Import CSV…</button>
             <button class="btn sm" id="sortNames">Sort A–Z</button>
             <button class="btn sm danger" id="clearNames">Remove all</button>
           </div>
@@ -322,6 +323,7 @@
 </div>
 <div id="printArea"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
+<input type="file" id="csvFile" accept=".csv,.txt,text/csv,text/plain" hidden>
 <script src="js/core.js"></script>
 <script src="js/sample.js"></script>
 <script src="js/icons.js"></script>

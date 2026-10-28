@@ -11,6 +11,15 @@ function openClass(id, tab) {
 /* Set up a class: name plus seat colour (a random unused colour is preselected), with a live
    preview of the automatic subject icon in that colour. */
 const seatSwatches = sel => Object.keys(SEAT_COLOURS).map(k => `<button type="button" class="seat-sw ${k === sel ? 'on' : ''}" data-col="${k}" style="background:${SEAT_COLOURS[k]}" title="${k[0].toUpperCase() + k.slice(1)}" aria-label="${k}" aria-pressed="${k === sel}"></button>`).join('');
+/* Copy another class's students (with front-priority flags) and keep-apart/together rules into a new
+   class. Students get new ids so the two classes stay independent; seat locks aren't copied because
+   they belong to the other class's room. */
+function copyStudentsAndRules(from, to) {
+  const map = new Map();
+  to.students = from.students.map(s => { const id = uid('st'); map.set(s.id, id); return { id, name: s.name, front: !!s.front, lock: null }; });
+  to.rules = from.rules.map(r => ({ id: uid('rule'), type: r.type, members: r.members.map(m => map.get(m)).filter(Boolean) })).filter(r => r.members.length >= 2);
+  to.adjacency = from.adjacency;
+}
 async function newClass() {
   let colour = pickSeatColour();
   const bg = document.createElement('div');
@@ -18,6 +27,8 @@ async function newClass() {
   bg.innerHTML = `<form class="modal" role="dialog" aria-label="New class"><h3>New class</h3>
     <label class="field"><span>Class name</span><input class="input" id="ncName" placeholder="e.g. 12CHEM or Year 9 Maths" autocomplete="off"></label>
     <div class="field"><span>Colour</span><div class="swatch-row" id="ncSwatches">${seatSwatches(colour)}</div></div>
+    <label class="field"><span>Room for seating plans</span><select class="input" id="ncRoom">${data.rooms.map(r => `<option value="${r.id}" ${r.id === (classRoom(activeClass()) || {}).id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></label>
+    <label class="field"><span>Start with</span><select class="input" id="ncFrom"><option value="">An empty class list</option>${data.classes.filter(c => c.students.length).map(c => `<option value="${c.id}">Students and rules from ${esc(c.name)} (${c.students.length})</option>`).join('')}</select></label>
     <div class="nc-preview" id="ncPreview"></div>
     <div class="btn-row"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Create class</button></div></form>`;
   document.body.appendChild(bg);
@@ -44,9 +55,16 @@ async function newClass() {
     e.preventDefault();
     const name = inp.value.trim();
     if (!name) { inp.focus(); return toast('Give the class a name first.'); }
+    const from = data.classes.find(c => c.id === bg.querySelector('#ncFrom').value), roomId = bg.querySelector('#ncRoom').value;
     close();
-    mutate(() => { const c = blankClass(name); c.roomId = data.activeRoomId; c.color = colour; data.classes.push(c); data.activeClassId = c.id; ui.tab = 'students'; });
+    mutate(() => {
+      const c = blankClass(name);
+      c.roomId = roomId || data.activeRoomId; c.color = colour;
+      if (from) copyStudentsAndRules(from, c);
+      data.classes.push(c); data.activeClassId = c.id; ui.tab = 'students';
+    });
     saveUI();
+    if (from) toast(`Copied ${from.students.length} students and ${from.rules.length} rule${from.rules.length === 1 ? '' : 's'} from ${from.name}`);
   });
   preview();
   inp.focus();

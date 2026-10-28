@@ -229,9 +229,12 @@ const Tools = (() => {
     const head = rows[0].map(h => h.toLowerCase());
     const col = re => head.findIndex(h => re.test(h));
     const hasHeader = head.some(h => HEAD.first.test(h) || HEAD.last.test(h) || HEAD.full.test(h) || HEAD.preferred.test(h));
-    let firstI = -1, lastI = -1, fullI = -1, used;
+    let firstI = -1, prefI = -1, lastI = -1, fullI = -1, used;
     if (hasHeader) {
-      firstI = col(HEAD.preferred); if (firstI < 0) firstI = col(HEAD.first);
+      prefI = col(HEAD.preferred);
+      firstI = col(HEAD.first);
+      if (firstI === prefI) firstI = -1;
+      if (firstI < 0 && prefI >= 0) { firstI = prefI; prefI = -1; }
       lastI = col(HEAD.last);
       fullI = col(HEAD.full);
       if (firstI < 0 && lastI < 0 && fullI < 0) fullI = 0;
@@ -242,7 +245,7 @@ const Tools = (() => {
     const seen = new Set(), names = [];
     for (const r of body) {
       let nm;
-      if (firstI >= 0 || lastI >= 0) nm = [r[firstI] || '', r[lastI] || ''].join(' ');
+      if (firstI >= 0 || lastI >= 0) nm = [(prefI >= 0 && r[prefI]) || r[firstI] || '', r[lastI] || ''].join(' ');
       else nm = r[fullI] || '';
       nm = nm.replace(/\s+/g, ' ').trim();
       const m = nm.match(/^([^,]+),\s*([^,]+)$/);
@@ -250,7 +253,7 @@ const Tools = (() => {
       if (!nm || seen.has(nm.toLowerCase())) continue;
       seen.add(nm.toLowerCase()); names.push(nm);
     }
-    if (firstI >= 0 || lastI >= 0) used = hasHeader ? `${rows[0][firstI] ?? ''} + ${rows[0][lastI] ?? ''}`.replace(/^ \+ | \+ $/g, '') : (swap ? 'column 2 + column 1' : 'column 1 + column 2');
+    if (firstI >= 0 || lastI >= 0) used = hasHeader ? `${prefI >= 0 ? `${rows[0][prefI]} (or ${rows[0][firstI]})` : rows[0][firstI] ?? ''} + ${rows[0][lastI] ?? ''}`.replace(/^ \+ | \+ $/g, '') : (swap ? 'column 2 + column 1' : 'column 1 + column 2');
     else used = hasHeader ? rows[0][fullI] : 'column 1';
     return { names, hasHeader, columns: used };
   }

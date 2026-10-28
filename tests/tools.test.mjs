@@ -307,8 +307,16 @@ test('a "Name" header column, with other columns ignored', () => {
 test('first name and surname columns (school system export)', () => {
   assert.deepEqual(names('Student Code,Surname,Given Name,Year Level\n1001,Nguyen,Charlotte,10\n1002,Walker,Henry,10'), ['Charlotte Nguyen', 'Henry Walker']);
 });
-test('preferred name is used over legal first name', () => {
-  assert.deepEqual(names('First Name,Preferred Name,Last Name\nAlexander,Alex,Ng\nKatherine,,Lee'), ['Alex Ng', 'Lee']);
+test('preferred name is used over legal first name, falling back to first name when blank', () => {
+  assert.deepEqual(names('First Name,Preferred Name,Last Name\nAlexander,Alex,Ng\nKatherine,,Lee'), ['Alex Ng', 'Katherine Lee']);
+});
+test('a school export with code, surname, given and preferred name columns', () => {
+  const csv = 'Student Code,Surname,Given Name,Preferred Name,Year Level\n20031,Nguyen,Charlotte,,10\n20044,"O\'Connor",William,Will,10';
+  assert.deepEqual(names(csv), ['Charlotte Nguyen', "Will O'Connor"]);
+  assert.equal(namesFromRows(parseCSV(csv)).columns, 'Preferred Name (or Given Name) + Surname');
+});
+test('only a preferred-name column (no separate first name) is used as the first name', () => {
+  assert.deepEqual(names('Preferred Name,Surname\nAlex,Ng'), ['Alex Ng']);
 });
 test('quoted cells with commas and escaped quotes', () => {
   assert.deepEqual(names('Name\n"O\'Connor, Liam"\n"Jamie ""JJ"" Brown"'), ['Liam O\'Connor', 'Jamie "JJ" Brown']);
