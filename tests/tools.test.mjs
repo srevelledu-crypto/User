@@ -1,4 +1,4 @@
-// Group maker, random picker and CSV import tests. Run with: node classpost/tests/tools.test.mjs
+// Group maker, random picker and CSV import tests. Run with: node tests/tools.test.mjs
 // Loads the same scripts the page uses (js/tools.js, js/sample.js).
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';

@@ -1,6 +1,6 @@
-<img src="brand/classpost-logo.png" alt="ClassPost" width="220">
+<img src="brand/classcrate-logo.png" alt="ClassCrate" width="360">
 
-# ClassPost
+# ClassCrate
 
 Classroom tools for teachers, organised by class: pick a class, then use its
 **seating plan**, **groups**, **random picker**, **lesson timer**, **noise
@@ -81,7 +81,7 @@ Shortcuts (Rooms): `R` rotates, `Del` deletes, `Ctrl/⌘+D` duplicates, and the
 arrow keys nudge. `Shift` while drawing walls turns off snapping. Undo and
 redo (`Ctrl/⌘+Z`, `Ctrl/⌘+Shift+Z`) work everywhere.
 
-Data saved by the earlier Seating Planner, Class Toolkit or Classbeat (same browser, same
+Data saved by the earlier Seating Planner, Class Toolkit, Classbeat or ClassPost (same browser, same
 site) loads as-is, so existing classes, rooms and plans carry over. Backups
 made by either load with **Import…**.
 
@@ -169,14 +169,24 @@ node tests/tools.test.mjs
 
 ## Branding
 
-`brand/` holds the ClassPost logo (`classpost-logo.png`, a tree whose leaves
-carry open books), the tree on its own as an SVG (`classpost-mark.svg`), the
-favicon and the home-screen icon. The top bar uses a simplified tree (the five
-big leaves, no books) drawn as inline SVG in `index.html`, so it stays sharp
-and readable at small sizes. The wordmark is "Class" in blue `#026afa` and
-"Post" in navy `#0a1c3f`.
+The logo is an open teal crate with a notebook, ruler and pencil inside, next to
+the wordmark "Class" in navy `#0a1c3f` and "Crate" in teal `#1f9488`. `brand/`
+holds:
 
-Class colours come from the tree's leaves: blue `#016df8`, green `#04af4f`,
-red `#fa3e42`, orange `#fa6002`, yellow `#fab001` and teal `#01aab5`. Each
-class gets one at random when it's created (no repeats until all six are used)
-and can be changed under **Colour & icon**.
+- `classcrate-logo.svg`: the open crate on its own (used in the top bar, where
+  it is drawn inline in `index.html`);
+- `classcrate-icon.svg`: the matching closed crate, for small sizes where the
+  open one would be too busy;
+- `classcrate-logo.png`: the crate with the wordmark, for this README;
+- `favicon.png` and `apple-touch-icon.png`: the closed crate for the browser tab
+  and the home-screen icon.
+
+The crate's colours: box `#2fa89c` (sides and lid are the same teal, shaded
+darker), notebook navy `#1d3a6e`, ruler `#f8c33c`, pencil `#ff6b57`. Buttons,
+links and the selected tab use a slightly deeper teal, `#178276`, so they read
+clearly as text.
+
+Each class gets one of six class colours at random when it's created (blue
+`#016df8`, green `#04af4f`, red `#fa3e42`, orange `#fa6002`, yellow `#fab001`,
+teal `#01aab5`; no repeats until all six are used) and can be changed under
+**Colour & icon**.

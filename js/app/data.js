@@ -14,8 +14,8 @@ async function dataMenu() {
     ],
   });
   if (v === 'export') {
-    const blob = new Blob([JSON.stringify({ app: 'classpost', version: 3, exportedAt: new Date().toISOString(), rooms: data.rooms, classes: data.classes }, null, 2)], { type: 'application/json' });
-    await download(blob, `classpost-backup-${new Date().toISOString().slice(0, 10)}.json`);
+    const blob = new Blob([JSON.stringify({ app: 'classcrate', version: 3, exportedAt: new Date().toISOString(), rooms: data.rooms, classes: data.classes }, null, 2)], { type: 'application/json' });
+    await download(blob, `classcrate-backup-${new Date().toISOString().slice(0, 10)}.json`);
   }
   if (v === 'import') $('#importFile').click();
   if (v === 'sample') {
@@ -37,7 +37,7 @@ $('#importFile').addEventListener('change', async e => {
   if (!f) return;
   let inc;
   try { inc = JSON.parse(await f.text()); } catch { return toast("That file isn't valid JSON."); }
-  if (!inc || !Array.isArray(inc.rooms) || !Array.isArray(inc.classes)) return toast("That doesn't look like a ClassPost backup.");
+  if (!inc || !Array.isArray(inc.rooms) || !Array.isArray(inc.classes)) return toast("That doesn't look like a ClassCrate backup.");
   const how = await modal({
     title: 'Import backup',
     body: `<p>The file has ${inc.classes.length} class(es) and ${inc.rooms.length} room layout(s).</p><p><b>Merge</b> adds them to what's here (matching items are updated). <b>Replace</b> discards current data. You can undo either.</p>`,

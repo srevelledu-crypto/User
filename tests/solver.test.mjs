@@ -1,4 +1,4 @@
-// Solver tests. Run with: node classpost/tests/solver.test.mjs
+// Solver tests. Run with: node tests/solver.test.mjs
 // Loads the same Core + Sample scripts the page uses (js/core.js, js/sample.js).
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
